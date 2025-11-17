@@ -1,11 +1,11 @@
-import React from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../app/store';
-import { Item } from '../features/data/dataSlice';
-import { addFavourite, removeFavourite } from '../features/favourites/favouritesSlice';
-import { ItemCard } from './ItemCard';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../app/store';
+import { Item } from '../features/data/dataSlice';
+import { addFavourite, FavouritesState, removeFavourite } from '../features/favourites/favouritesSlice';
+import { ItemCard } from './ItemCard';
 
 interface ItemCarouselProps {
   title: string;
@@ -15,7 +15,9 @@ interface ItemCarouselProps {
 export const ItemCarousel = ({ title, items }: ItemCarouselProps) => {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  const { items: favourites } = useSelector((state: RootState) => state.favourites);
+  const favourites = useSelector(
+    (state: RootState) => (state.favourites as FavouritesState).items,
+  );
 
   const handleFavouriteToggle = (item: Item) => {
     const isFavourite = favourites.some(fav => fav.id === item.id);
@@ -28,7 +30,10 @@ export const ItemCarousel = ({ title, items }: ItemCarouselProps) => {
   
   const handlePress = (item: Item) => {
     // Navigate to the details page, passing the ID
-    router.push(`/details/${item.id}`);
+    router.push({
+      pathname: '/details/[id]',
+      params: { id: item.id },
+    } as never);
   };
 
   return (
