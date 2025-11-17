@@ -1,98 +1,143 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, SafeAreaView, Pressable } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from '../../src/app/store';
+import { fetchData } from '../../src/features/data/dataSlice'; // You'll need to create this file
+import { useRouter, Link } from 'expo-router';
+import { useNavigationState } from '@react-navigation/native';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+// You will need to create the other slices (dataSlice, favouritesSlice)
+// and components (ItemCard, AppHeader) in their own .tsx files
+// and convert them to use React Native components.
+
+// This is a placeholder for your AppHeader
+const AppHeader = () => (
+  <View style={styles.header}>
+    <Text style={styles.headerTitle}>MediaMeld</Text>
+    {/* Dark mode toggle would go here */}
+  </View>
+);
+
+// A placeholder for your ItemCarousel
+const ItemCarouselPlaceholder = ({ title }: { title: string }) => (
+  <View style={styles.carouselContainer}>
+    <Text style={styles.carouselTitle}>{title}</Text>
+    <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      {/* You would map over your items and render <ItemCard> here */}
+      <View style={styles.itemCardPlaceholder}>
+        <Text style={{color: 'white'}}>Item 1</Text>
+      </View>
+      <View style={styles.itemCardPlaceholder}>
+        <Text style={{color: 'white'}}>Item 2</Text>
+      </View>
+      <View style={styles.itemCardPlaceholder}>
+        <Text style={{color: 'white'}}>Item 3</Text>
+      </View>
+    </ScrollView>
+  </View>
+);
+
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const dispatch = useDispatch<AppDispatch>();
+  const { user } = useSelector((state: RootState) => state.auth);
+  // const { movies, music, podcasts, status, error } = useSelector((state: RootState) => state.data);
+  const router = useRouter();
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  // Redirect to login if not authenticated
+  // We check the root router state to see if the user is on the '(tabs)' route
+  const rootState = useNavigationState(state => state);
+  
+  useEffect(() => {
+    if (rootState) { // Only check once navigation is ready
+      const isUserOnAuthRoutes = rootState.routes.some(r => r.name === 'login');
+      if (!user && !isUserOnAuthRoutes) {
+        router.push('/login');
+      }
+    }
+  }, [user, rootState, router]);
+
+  // Fetch data
+  // useEffect(() => {
+  //   if (status === 'idle') {
+  //     dispatch(fetchData());
+  //   }
+  // }, [status, dispatch]);
+
+  // if (status === 'loading') {
+  //   return (
+  //     <SafeAreaView style={styles.container}>
+  //       <AppHeader />
+  //       <ActivityIndicator size="large" style={{ flex: 1 }} />
+  //     </SafeAreaView>
+  //   );
+  // }
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <AppHeader />
+      <ScrollView>
+        {/*
+          This is where you would put your real components.
+          I've used placeholders to keep this file simple.
+        */}
+        <ItemCarouselPlaceholder title="Trending Movies" />
+        <ItemCarouselPlaceholder title="Popular Music" />
+        <ItemCarouselPlaceholder title="Top Podcasts" />
+        
+        {/* Example of navigating to a details page */}
+        <Link href="/details/movie-1" asChild>
+           <Pressable style={styles.detailsButton}>
+            <Text style={{color: 'white'}}>Test Details Page (movie-1)</Text>
+           </Pressable>
+        </Link>
+        
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
+// This is the React Native version of Tailwind
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: '#f3f4f6', // Corresponds to gray-100
   },
-  stepContainer: {
-    gap: 8,
+  header: {
+    padding: 16,
+    backgroundColor: 'white',
+    borderBottomWidth: 1,
+    borderBottomColor: '#e5e7eb',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#6366f1',
+  },
+  carouselContainer: {
+    marginVertical: 12,
+  },
+  carouselTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#111827',
     marginBottom: 8,
+    paddingHorizontal: 16,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  itemCardPlaceholder: {
+    width: 160,
+    height: 160,
+    backgroundColor: '#6366f1',
+    borderRadius: 8,
+    marginHorizontal: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
+  detailsButton: {
+    margin: 16,
+    padding: 12,
+    backgroundColor: '#1f2937',
+    borderRadius: 8,
+    alignItems: 'center',
+  }
 });
