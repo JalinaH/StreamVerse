@@ -1,24 +1,67 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import React, { useEffect, useState } from 'react';
+import { Provider, useDispatch } from 'react-redux';
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import 'react-native-reanimated';
+import { store } from '../src/app/store';
+import { setUser } from '../src/features/auth/authSlice';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
 
-import { useColorScheme } from '@/hooks/use-color-scheme';
+// This component loads the user from storage
+function RootNavigation() {
+  const dispatch = useDispatch();
+  const [isLoading, setIsLoading] = useState(true);
 
-export const unstable_settings = {
-  anchor: '(tabs)',
-};
+  useEffect(() => {
+    // This is the correct native way to load persistent data
+    const loadUser = async () => {
+      try {
+        const storedUser = await AsyncStorage.getItem('streambox_user');
+        if (storedUser) {
+          dispatch(setUser(JSON.parse(storedUser)));
+        }
+      } catch (error) {
+        console.error("Failed to load user from storage", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-export default function RootLayout() {
-  const colorScheme = useColorScheme();
+    loadUser();
+  }, [dispatch]);
 
+  // Show a loading spinner while we check for a saved user
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  // This is your main app navigation
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
-    </ThemeProvider>
+    <Stack>
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="login" options={{ presentation: 'modal', headerShown: false }} />
+      {/* Add your details screen here, e.g.: */}
+      {/* <Stack.Screen name="details/[id]" options={{ title: "Details" }} /> */}
+    </Stack>
   );
 }
+
+// This is your main App component
+export default function AppLayout() {
+  return (
+    <Provider store={store}>
+      <RootNavigation />
+    </Provider>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+});
