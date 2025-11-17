@@ -1,33 +1,47 @@
-import { Tabs } from 'expo-router';
 import React from 'react';
+import { Tabs } from 'expo-router';
+import { Feather } from '@expo/vector-icons'; // Correct icon import for Expo
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+// This is your custom component to get the right icon
+const TabBarIcon = ({ name, color }: { name: React.ComponentProps<typeof Feather>['name']; color: string }) => {
+  return <Feather size={28} style={{ marginBottom: -3 }} name={name} color={color} />;
+};
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+        tabBarActiveTintColor: '#6366f1', // Indigo color
+        tabBarInactiveTintColor: 'gray',
+        headerShown: false, // We will add a custom header in each screen
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="index" // This is the file `(tabs)/index.tsx`
         options={{
           title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="search" // This is `(tabs)/search.tsx`
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Search',
+          tabBarIcon: ({ color }) => <TabBarIcon name="search" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="favourites" // This is `(tabs)/favourites.tsx`
+        options={{
+          title: 'Favourites',
+          tabBarIcon: ({ color }) => <TabBarIcon name="heart" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile" // This is `(tabs)/profile.tsx`
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color }) => <TabBarIcon name="user" color={color} />,
         }}
       />
     </Tabs>
