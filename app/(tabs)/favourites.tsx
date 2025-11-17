@@ -21,7 +21,10 @@ export default function FavouritesScreen() {
   };
 
   const handlePress = (item: Item) => {
-    router.push(`/details/${item.id}`);
+    router.push({
+      pathname: '/details/[id]',
+      params: { id: item.id },
+    } as never);
   };
 
   if (favourites.length === 0) {
