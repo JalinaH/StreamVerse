@@ -1,6 +1,7 @@
 import { Link, useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
-import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import type { AuthState } from '../../src/features/auth/authSlice';
 import { RootState } from '../../src/state/store';
@@ -12,7 +13,7 @@ import { RootState } from '../../src/state/store';
 // This is a placeholder for your AppHeader
 const AppHeader = () => (
   <View style={styles.header}>
-    <Text style={styles.headerTitle}>MediaMeld</Text>
+    <Text style={styles.headerTitle}>StreamVerse</Text>
     {/* Dark mode toggle would go here */}
   </View>
 );

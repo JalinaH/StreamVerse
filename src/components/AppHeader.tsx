@@ -1,8 +1,8 @@
 import React from 'react';
 import { View, Text, StyleSheet, Image } from 'react-native';
 import { useSelector } from 'react-redux';
-import { RootState } from '../app/store';
-// import { useTheme } from '../contexts/ThemeContext'; // You would uncomment this
+import { RootState } from '../state/store';
+import { useTheme } from '../contexts/ThemeContext'; // You would uncomment this
 
 export const AppHeader = () => {
   const { user } = useSelector((state: RootState) => state.auth);
@@ -10,7 +10,7 @@ export const AppHeader = () => {
 
   return (
     <View style={styles.header}>
-      <Text style={styles.headerTitle}>MediaMeld</Text>
+      <Text style={styles.headerTitle}>StreamVerse</Text>
       <View style={styles.rightContainer}>
         {/* <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
           <Feather name={isDarkMode ? 'sun' : 'moon'} size={22} color="#4b5563" />

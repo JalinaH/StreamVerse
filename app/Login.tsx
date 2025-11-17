@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AuthState } from '../src/features/auth/authSlice';
 import { loginUser } from '../src/features/auth/authSlice';
@@ -18,11 +19,11 @@ export default function LoginScreen() {
   const [validationError, setValidationError] = useState('');
 
   useEffect(() => {
-    // If login is successful, close the modal
+    // Replace the login route with the tab stack once authenticated
     if (user) {
-      router.back();
+      router.replace({ pathname: '/(tabs)' } as never);
     }
-  }, [user, router]);
+  }, [router, user]);
 
   const validate = () => {
     if (!username || !password) {
@@ -49,7 +50,7 @@ export default function LoginScreen() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.card}>
-        <Text style={styles.title}>Welcome to MediaMeld</Text>
+        <Text style={styles.title}>Welcome to StreamVerse</Text>
         
         <Text style={styles.label}>Username</Text>
         <TextInput
