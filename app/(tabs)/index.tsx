@@ -1,10 +1,9 @@
+import { Link, useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, SafeAreaView, Pressable } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../src/app/store';
-import { fetchData } from '../../src/features/data/dataSlice'; // You'll need to create this file
-import { useRouter, Link } from 'expo-router';
-import { useNavigationState } from '@react-navigation/native';
+import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../src/app/store';
+import type { AuthState } from '../../src/features/auth/authSlice';
 
 // You will need to create the other slices (dataSlice, favouritesSlice)
 // and components (ItemCard, AppHeader) in their own .tsx files
@@ -39,39 +38,17 @@ const ItemCarouselPlaceholder = ({ title }: { title: string }) => (
 
 
 export default function HomeScreen() {
-  const dispatch = useDispatch<AppDispatch>();
-  const { user } = useSelector((state: RootState) => state.auth);
-  // const { movies, music, podcasts, status, error } = useSelector((state: RootState) => state.data);
+  const user = useSelector((state: RootState) => (state.auth as AuthState).user);
   const router = useRouter();
 
-  // Redirect to login if not authenticated
-  // We check the root router state to see if the user is on the '(tabs)' route
-  const rootState = useNavigationState(state => state);
-  
+  // Redirect to login when unauthenticated
   useEffect(() => {
-    if (rootState) { // Only check once navigation is ready
-      const isUserOnAuthRoutes = rootState.routes.some(r => r.name === 'login');
-      if (!user && !isUserOnAuthRoutes) {
-        router.push('/login');
-      }
+    if (!user) {
+      router.replace('/login');
     }
-  }, [user, rootState, router]);
+  }, [router, user]);
 
-  // Fetch data
-  // useEffect(() => {
-  //   if (status === 'idle') {
-  //     dispatch(fetchData());
-  //   }
-  // }, [status, dispatch]);
 
-  // if (status === 'loading') {
-  //   return (
-  //     <SafeAreaView style={styles.container}>
-  //       <AppHeader />
-  //       <ActivityIndicator size="large" style={{ flex: 1 }} />
-  //     </SafeAreaView>
-  //   );
-  // }
 
   return (
     <SafeAreaView style={styles.container}>

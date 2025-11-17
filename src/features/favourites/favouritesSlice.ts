@@ -1,9 +1,8 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { Item } from '../data/dataSlice'; // Reuse the Item type
-import { RootState } from '../../app/store'; // Import RootState for the thunk
 
-interface FavouritesState {
+export interface FavouritesState {
   items: Item[];
 }
 

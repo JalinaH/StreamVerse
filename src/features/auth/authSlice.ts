@@ -1,8 +1,8 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 // Define the User type based on the dummyjson response
-interface User {
+export interface User {
   id: number;
   username: string;
   email: string;
@@ -12,7 +12,7 @@ interface User {
   token: string;
 }
 
-interface AuthState {
+export interface AuthState {
   user: User | null;
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null | undefined;

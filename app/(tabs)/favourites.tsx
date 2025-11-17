@@ -1,18 +1,20 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, Pressable } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../src/app/store';
+import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import React from 'react';
+import { FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../src/app/store';
 import { AppHeader } from '../../src/components/AppHeader';
 import { ItemCard } from '../../src/components/ItemCard';
 import { Item } from '../../src/features/data/dataSlice';
-import { addFavourite, removeFavourite } from '../../src/features/favourites/favouritesSlice';
-import { Feather } from '@expo/vector-icons';
+import { FavouritesState, removeFavourite } from '../../src/features/favourites/favouritesSlice';
 
 export default function FavouritesScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
-  const { items: favourites } = useSelector((state: RootState) => state.favourites);
+  const favourites = useSelector(
+    (state: RootState) => (state.favourites as FavouritesState).items,
+  );
 
   const handleFavouriteToggle = (item: Item) => {
     dispatch(removeFavourite({ id: item.id }));
