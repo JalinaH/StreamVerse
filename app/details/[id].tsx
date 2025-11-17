@@ -1,11 +1,11 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Image, Pressable, ScrollView } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../src/app/store';
-import { useLocalSearchParams, useRouter } from 'expo-router';
-import { addFavourite, removeFavourite } from '../../src/features/favourites/favouritesSlice';
 import { Feather } from '@expo/vector-icons';
-import { Item } from '../../src/features/data/dataSlice';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import React from 'react';
+import { Image, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../src/app/store';
+import { DataState, Item } from '../../src/features/data/dataSlice';
+import { addFavourite, FavouritesState, removeFavourite } from '../../src/features/favourites/favouritesSlice';
 
 export default function DetailsScreen() {
   const dispatch = useDispatch<AppDispatch>();
@@ -13,14 +13,16 @@ export default function DetailsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
 
   // Find the item from the Redux store using its ID
-  const item = useSelector((state: RootState) => {
+  const item = useSelector<RootState, Item | undefined>((state) => {
     if (!id) return undefined;
-    return [...state.data.movies, ...state.data.music, ...state.data.podcasts]
-           .find(item => item.id === id);
+    const { movies, music, podcasts } = state.data as DataState;
+    return [...movies, ...music, ...podcasts].find((entry) => entry.id === id);
   });
   
-  const { items: favourites } = useSelector((state: RootState) => state.favourites);
-  const isFavourite = favourites.some(fav => fav.id === id);
+  const favourites = useSelector(
+    (state: RootState) => (state.favourites as FavouritesState).items,
+  );
+  const isFavourite = favourites.some((fav: Item) => fav.id === id);
 
   const handleFavouriteToggle = () => {
     if (!item) return;

@@ -1,14 +1,15 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, Image, Pressable } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState, AppDispatch } from '../../src/app/store';
-import { logout } from '../../src/features/auth/authSlice';
-import { AppHeader } from '../../src/components/AppHeader';
 import { Feather } from '@expo/vector-icons';
+import React from 'react';
+import { Image, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
+import { AppDispatch, RootState } from '../../src/app/store';
+import { AppHeader } from '../../src/components/AppHeader';
+import type { AuthState } from '../../src/features/auth/authSlice';
+import { logout } from '../../src/features/auth/authSlice';
 
 export default function ProfileScreen() {
   const dispatch = useDispatch<AppDispatch>();
-  const { user } = useSelector((state: RootState) => state.auth);
+  const user = useSelector((state: RootState) => (state.auth as AuthState).user);
 
   if (!user) {
     // This shouldn't happen if auth redirect is working, but just in case

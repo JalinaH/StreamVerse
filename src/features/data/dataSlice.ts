@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 
 // Define a universal Item type
 export interface Item {
@@ -10,7 +10,7 @@ export interface Item {
   status: string;
 }
 
-interface DataState {
+export interface DataState {
   movies: Item[];
   music: Item[];
   podcasts: Item[];
