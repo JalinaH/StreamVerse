@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../app/store';
+import { AppDispatch, RootState } from '../state/store';
 import { Item } from '../features/data/dataSlice';
 import { addFavourite, FavouritesState, removeFavourite } from '../features/favourites/favouritesSlice';
 import { ItemCard } from './ItemCard';

@@ -3,11 +3,11 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { FlatList, SafeAreaView, StyleSheet, Text, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../../src/app/store';
 import { AppHeader } from '../../src/components/AppHeader';
 import { ItemCard } from '../../src/components/ItemCard';
 import { Item } from '../../src/features/data/dataSlice';
 import { FavouritesState, removeFavourite } from '../../src/features/favourites/favouritesSlice';
+import { AppDispatch, RootState } from '../../src/state/store';
 
 export default function FavouritesScreen() {
   const dispatch = useDispatch<AppDispatch>();

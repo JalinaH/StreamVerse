@@ -2,8 +2,8 @@ import { Link, useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
 import { Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { RootState } from '../../src/app/store';
 import type { AuthState } from '../../src/features/auth/authSlice';
+import { RootState } from '../../src/state/store';
 
 // You will need to create the other slices (dataSlice, favouritesSlice)
 // and components (ItemCard, AppHeader) in their own .tsx files

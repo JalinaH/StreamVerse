@@ -3,9 +3,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React from 'react';
 import { Image, Pressable, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../../src/app/store';
 import { DataState, Item } from '../../src/features/data/dataSlice';
 import { addFavourite, FavouritesState, removeFavourite } from '../../src/features/favourites/favouritesSlice';
+import { AppDispatch, RootState } from '../../src/state/store';
 
 export default function DetailsScreen() {
   const dispatch = useDispatch<AppDispatch>();

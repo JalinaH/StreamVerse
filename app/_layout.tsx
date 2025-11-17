@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { Provider, useDispatch } from 'react-redux';
-import { Stack } from 'expo-router';
-import { store } from '../src/app/store';
-import { setUser } from '../src/features/auth/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { Stack } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { Provider, useDispatch } from 'react-redux';
+import { setUser } from '../src/features/auth/authSlice';
+import { store } from '../src/state/store';
 
 // This component loads the user from storage
 function RootNavigation() {

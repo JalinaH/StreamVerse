@@ -2,9 +2,9 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppDispatch, RootState } from '../src/app/store';
 import type { AuthState } from '../src/features/auth/authSlice';
 import { loginUser } from '../src/features/auth/authSlice';
+import { AppDispatch, RootState } from '../src/state/store';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('kminchelle'); // Default for easy testing
