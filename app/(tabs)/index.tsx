@@ -44,7 +44,7 @@ export default function HomeScreen() {
   // Redirect to login when unauthenticated
   useEffect(() => {
     if (!user) {
-      router.replace('/login');
+      router.replace({ pathname: '/login' } as never);
     }
   }, [router, user]);
 
@@ -63,7 +63,13 @@ export default function HomeScreen() {
         <ItemCarouselPlaceholder title="Top Podcasts" />
         
         {/* Example of navigating to a details page */}
-        <Link href="/details/movie-1" asChild>
+        <Link
+          href={{
+            pathname: '/details/[id]',
+            params: { id: 'movie-1' },
+          } as never}
+          asChild
+        >
            <Pressable style={styles.detailsButton}>
             <Text style={{color: 'white'}}>Test Details Page (movie-1)</Text>
            </Pressable>
