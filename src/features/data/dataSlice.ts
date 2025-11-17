@@ -27,7 +27,11 @@ const initialState: DataState = {
 };
 
 // Async thunk is identical to the web version
-export const fetchData = createAsyncThunk(
+export const fetchData = createAsyncThunk<
+  { movies: Item[]; music: Item[]; podcasts: Item[] },
+  void,
+  { rejectValue: string }
+>(
   'data/fetchData',
   async (_, { rejectWithValue }) => {
     try {
@@ -75,7 +79,7 @@ export const fetchData = createAsyncThunk(
       return { movies, music, podcasts };
 
     } catch (error: any) {
-      return rejectWithValue(error.message);
+      return rejectWithValue(error.message ?? 'Failed to fetch data');
     }
   }
 );
@@ -97,7 +101,7 @@ const dataSlice = createSlice({
       })
       .addCase(fetchData.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload;
+        state.error = action.payload ?? 'Failed to fetch data';
       });
   },
 });

@@ -1,8 +1,7 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../app/store';
-import { Feather } from '@expo/vector-icons';
 // import { useTheme } from '../contexts/ThemeContext'; // You would uncomment this
 
 export const AppHeader = () => {

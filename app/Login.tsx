@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Pressable, StyleSheet, ActivityIndicator, Alert, SafeAreaView } from 'react-native';
+import { useRouter } from 'expo-router';
+import React, { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, SafeAreaView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppDispatch, RootState } from '../src/app/store';
+import type { AuthState } from '../src/features/auth/authSlice';
 import { loginUser } from '../src/features/auth/authSlice';
-import { useRouter } from 'expo-router';
 
 export default function LoginScreen() {
   const [username, setUsername] = useState('kminchelle'); // Default for easy testing
@@ -11,7 +12,9 @@ export default function LoginScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   
-  const { status, error, user } = useSelector((state: RootState) => state.auth);
+  const { status, error, user } = useSelector(
+    (state: RootState) => state.auth as AuthState,
+  );
   const [validationError, setValidationError] = useState('');
 
   useEffect(() => {
