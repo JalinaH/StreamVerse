@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppHeader } from '../../src/components/AppHeader';
@@ -84,15 +84,6 @@ export default function SearchScreen() {
     }
   };
 
-  const renderResult = ({ item }: { item: Item }) => (
-    <ItemCard
-      item={item}
-      onPress={() => handleCardPress(item)}
-      isFavourite={favourites.some((fav) => fav.id === item.id)}
-      onFavouriteToggle={() => handleFavouriteToggle(item)}
-    />
-  );
-
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container} edges={['top']}>
@@ -140,13 +131,18 @@ export default function SearchScreen() {
 
           {shouldShowResults ? (
             filteredResults.length > 0 ? (
-              <FlatList
-                data={filteredResults}
-                keyExtractor={(item) => item.id}
-                renderItem={renderResult}
-                scrollEnabled={false}
-                contentContainerStyle={styles.resultsList}
-              />
+              <View style={styles.resultsGrid}>
+                {filteredResults.map((item) => (
+                  <View key={item.id} style={styles.gridItem}>
+                    <ItemCard
+                      item={item}
+                      onPress={() => handleCardPress(item)}
+                      isFavourite={favourites.some((fav) => fav.id === item.id)}
+                      onFavouriteToggle={() => handleFavouriteToggle(item)}
+                    />
+                  </View>
+                ))}
+              </View>
             ) : (
               <Text style={styles.emptyCopy}>
                 No results match
@@ -248,9 +244,16 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     fontStyle: 'italic',
   },
-  resultsList: {
-    paddingVertical: 24,
-    gap: 16,
+  resultsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    marginTop: 24,
+  },
+  gridItem: {
+    width: '48%',
+    marginBottom: 16,
+    alignItems: 'center',
   },
   emptyCopy: {
     marginTop: 24,
