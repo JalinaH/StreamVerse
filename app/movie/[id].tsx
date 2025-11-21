@@ -12,15 +12,15 @@ import { Item } from '../../src/features/data/dataSlice';
 import { addFavourite, FavouritesState, removeFavourite } from '../../src/features/favourites/favouritesSlice';
 import { AppDispatch, RootState } from '../../src/state/store';
 
-export default function DetailsScreen() {
+export default function MovieDetailsScreen() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const dispatch = useDispatch<AppDispatch>();
   const { colors } = useTheme();
 
   const item = useSelector((state: RootState) => {
-    const { movies, music, podcasts } = state.data;
-    return [...movies, ...music, ...podcasts].find((i) => i.id === id);
+    const { movies } = state.data;
+    return movies.find((i) => i.id === id);
   });
 
   const isFavourite = useSelector((state: RootState) =>
@@ -36,11 +36,11 @@ export default function DetailsScreen() {
     }
   };
 
-  // Fallback if item not found (e.g. for testing)
+  // Fallback if item not found
   const displayItem: Item = item || {
     id: id as string,
-    title: 'Unknown Item',
-    description: 'This item could not be found.',
+    title: 'Unknown Movie',
+    description: 'This movie could not be found.',
     image: 'https://via.placeholder.com/400',
     status: 'Unknown',
     type: 'movie',
@@ -80,7 +80,7 @@ export default function DetailsScreen() {
           </View>
 
           <GlassView style={styles.descriptionCard}>
-            <Text style={[styles.sectionTitle, { color: colors.text.accent }]}>Description</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text.accent }]}>Overview</Text>
             <Text style={[styles.description, { color: colors.text.secondary }]}>{displayItem.description}</Text>
           </GlassView>
 
@@ -192,10 +192,6 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   actionButton: {
-  },
-  actionText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 16,
+    width: '100%',
   },
 });

@@ -41,7 +41,16 @@ export default function HomeScreen() {
   };
 
   const handleItemPress = (id: string) => {
-    router.push({ pathname: '/details/[id]', params: { id } });
+    if (id.startsWith('movie-')) {
+      router.push({ pathname: '/movie/[id]', params: { id } });
+    } else if (id.startsWith('music-')) {
+      router.push({ pathname: '/music/[id]', params: { id } });
+    } else if (id.startsWith('podcast-')) {
+      router.push({ pathname: '/podcast/[id]', params: { id } });
+    } else {
+      // Fallback
+      router.push({ pathname: '/details/[id]', params: { id } });
+    }
   };
 
   if (!user) {
