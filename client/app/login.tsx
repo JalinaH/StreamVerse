@@ -7,12 +7,17 @@ import { GlassView } from '../src/components/ui/GlassView';
 import { GradientBackground } from '../src/components/ui/GradientBackground';
 import { NeonButton } from '../src/components/ui/NeonButton';
 import { useTheme } from '../src/contexts/ThemeContext';
-import { AuthState, loginUser } from '../src/features/auth/authSlice';
+import { AuthState, loginUser, registerUser } from '../src/features/auth/authSlice';
 import { AppDispatch, RootState } from '../src/state/store';
 
 export default function LoginScreen() {
-  const [username, setUsername] = useState('kminchelle');
-  const [password, setPassword] = useState('0lelplR');
+  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [identifier, setIdentifier] = useState('');
+  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [email, setEmail] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { colors } = useTheme();
@@ -29,18 +34,49 @@ export default function LoginScreen() {
   }, [router, user]);
 
   const validate = () => {
-    if (!username || !password) {
-      setValidationError('Username and Password are required.');
+    if (mode === 'login') {
+      if (!identifier || !password) {
+        setValidationError('Username/Email and password are required.');
+        return false;
+      }
+      setValidationError('');
+      return true;
+    }
+
+    if (!firstName || !lastName || !email || !identifier || !password) {
+      setValidationError('All fields except avatar are required.');
       return false;
     }
+
     setValidationError('');
     return true;
   };
   
   const handleSubmit = () => {
-    if (validate()) {
-      dispatch(loginUser({ username, password }));
+    if (!validate()) {
+      return;
     }
+
+    if (mode === 'login') {
+      dispatch(loginUser({ identifier, password }));
+      return;
+    }
+
+    dispatch(
+      registerUser({
+        firstName,
+        lastName,
+        email,
+        username: identifier,
+        password,
+        avatarUrl: avatarUrl || undefined,
+      })
+    );
+  };
+
+  const toggleMode = () => {
+    setMode((prev) => (prev === 'login' ? 'register' : 'login'));
+    setValidationError('');
   };
 
   useEffect(() => {
@@ -54,18 +90,48 @@ export default function LoginScreen() {
       <SafeAreaView style={styles.container}>
         <GlassView style={styles.card}>
           <Text style={[styles.title, { color: colors.text.primary, textShadowColor: colors.primary }]}>
-            Welcome to StreamVerse
+            {mode === 'login' ? 'Welcome to StreamVerse' : 'Create your account'}
           </Text>
-          
-          <Text style={[styles.label, { color: colors.text.secondary }]}>Username</Text>
+
+          {mode === 'register' && (
+            <>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>First Name</Text>
+              <TextInput
+                style={[styles.input, { color: colors.text.primary, borderColor: colors.glass.border, backgroundColor: 'rgba(255,255,255,0.05)' }]}
+                value={firstName}
+                onChangeText={setFirstName}
+                placeholderTextColor={colors.text.secondary}
+              />
+
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Last Name</Text>
+              <TextInput
+                style={[styles.input, { color: colors.text.primary, borderColor: colors.glass.border, backgroundColor: 'rgba(255,255,255,0.05)' }]}
+                value={lastName}
+                onChangeText={setLastName}
+                placeholderTextColor={colors.text.secondary}
+              />
+
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Email</Text>
+              <TextInput
+                style={[styles.input, { color: colors.text.primary, borderColor: colors.glass.border, backgroundColor: 'rgba(255,255,255,0.05)' }]}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                placeholderTextColor={colors.text.secondary}
+              />
+            </>
+          )}
+
+          <Text style={[styles.label, { color: colors.text.secondary }]}>Username {mode === 'login' ? 'or Email' : ''}</Text>
           <TextInput
             style={[styles.input, { color: colors.text.primary, borderColor: colors.glass.border, backgroundColor: 'rgba(255,255,255,0.05)' }]}
-            value={username}
-            onChangeText={setUsername}
+            value={identifier}
+            onChangeText={setIdentifier}
             autoCapitalize="none"
             placeholderTextColor={colors.text.secondary}
           />
-          
+
           <Text style={[styles.label, { color: colors.text.secondary }]}>Password</Text>
           <TextInput
             style={[styles.input, { color: colors.text.primary, borderColor: colors.glass.border, backgroundColor: 'rgba(255,255,255,0.05)' }]}
@@ -74,17 +140,37 @@ export default function LoginScreen() {
             secureTextEntry
             placeholderTextColor={colors.text.secondary}
           />
+
+          {mode === 'register' && (
+            <>
+              <Text style={[styles.label, { color: colors.text.secondary }]}>Avatar URL (optional)</Text>
+              <TextInput
+                style={[styles.input, { color: colors.text.primary, borderColor: colors.glass.border, backgroundColor: 'rgba(255,255,255,0.05)' }]}
+                value={avatarUrl}
+                onChangeText={setAvatarUrl}
+                autoCapitalize="none"
+                placeholder="https://..."
+                placeholderTextColor={colors.text.secondary}
+              />
+            </>
+          )}
           
           {(error || validationError) ? (
             <Text style={[styles.errorText, { color: colors.status.error }]}>{error || validationError}</Text>
           ) : null}
           
           <NeonButton 
-            title="LOGIN" 
+            title={mode === 'login' ? 'LOGIN' : 'CREATE ACCOUNT'} 
             onPress={handleSubmit} 
             loading={status === 'loading'}
             style={styles.button}
           />
+
+          <Text style={[styles.switchText, { color: colors.text.secondary }]}
+            onPress={toggleMode}
+          >
+            {mode === 'login' ? 'Need an account? Register here.' : 'Already have an account? Log in.'}
+          </Text>
         </GlassView>
       </SafeAreaView>
     </GradientBackground>
@@ -130,5 +216,10 @@ const styles = StyleSheet.create({
   },
   button: {
     marginTop: 10,
+  },
+  switchText: {
+    textAlign: 'center',
+    marginTop: 16,
+    textDecorationLine: 'underline',
   },
 });

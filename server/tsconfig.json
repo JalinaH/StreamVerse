@@ -2,10 +2,17 @@
   "compilerOptions": {
     "module": "commonjs",
     "esModuleInterop": true,
-    "target": "es6",
+    "target": "es2020",
     "moduleResolution": "node",
+    "rootDir": "src",
+    "outDir": "dist",
+    "strict": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "types": ["node"],
     "sourceMap": true,
-    "outDir": "dist"
+    "lib": ["es2020"]
   },
-  "lib": ["es2015"]
+  "include": ["src"],
+  "exclude": ["node_modules"]
 }

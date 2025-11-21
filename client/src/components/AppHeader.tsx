@@ -10,13 +10,17 @@ import { RootState } from '../state/store';
 export const AppHeader = () => {
   const user = useSelector((state: RootState) => (state.auth as AuthState).user);
   const { colors, isDarkMode, toggleTheme } = useTheme();
+  const avatar = user?.avatarUrl ||
+    (user ? `https://ui-avatars.com/api/?name=${encodeURIComponent(`${user.firstName} ${user.lastName}`)}&background=0f172a&color=ffffff` : undefined);
 
   return (
     <BlurView intensity={20} tint={isDarkMode ? 'dark' : 'light'} style={styles.headerContainer}>
       <View style={styles.headerContent}>
         <View>
           <Text style={[styles.greeting, { color: colors.text.secondary }]}>Welcome back,</Text>
-          <Text style={[styles.title, { color: colors.text.primary, textShadowColor: colors.primary }]}>StreamVerse</Text>
+          <Text style={[styles.title, { color: colors.text.primary, textShadowColor: colors.primary }]}>
+            {user ? `${user.firstName} ${user.lastName}` : 'StreamVerse'}
+          </Text>
         </View>
         
         <View style={styles.rightContainer}>
@@ -24,10 +28,10 @@ export const AppHeader = () => {
             <Feather name={isDarkMode ? 'sun' : 'moon'} size={24} color={colors.text.primary} />
           </Pressable>
           
-          {user && (
+          {avatar && (
             <View style={[styles.profileContainer, { borderColor: colors.primary }]}>
               <Image 
-                source={{ uri: user.image }} 
+                source={{ uri: avatar }} 
                 style={styles.profileImage} 
               />
             </View>

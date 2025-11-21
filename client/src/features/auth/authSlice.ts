@@ -1,14 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-// Define the User type based on the dummyjson response
+const API_BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:4000').replace(/\/$/, '');
+const AUTH_STORAGE_KEY = 'streambox_user';
+
 export interface User {
-  id: number;
+  id: string;
   username: string;
   email: string;
   firstName: string;
   lastName: string;
-  image: string;
+  avatarUrl?: string;
   token: string;
 }
 
@@ -18,47 +20,78 @@ export interface AuthState {
   error: string | null | undefined;
 }
 
+export interface RegisterPayload {
+  firstName: string;
+  lastName: string;
+  email: string;
+  username: string;
+  password: string;
+  avatarUrl?: string;
+}
+
+export interface LoginPayload {
+  identifier: string;
+  password: string;
+}
+
 const initialState: AuthState = {
-  user: null, // User is null on initial load
+  user: null,
   status: 'idle',
   error: null,
 };
 
-// Async thunk for login (same as before)
-export const loginUser = createAsyncThunk<
-  User, // Type of the successful return
-  { username: string; password: string }, // Type of the arguments
-  { rejectValue: string } // Type for rejection
->(
-  'auth/loginUser',
-  async ({ username, password }, { rejectWithValue }) => {
-    try {
-      const response = await fetch('https://dummyjson.com/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, expiresInMins: 60 }),
-      });
+const persistUser = async (user: User) => {
+  await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(user));
+};
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        return rejectWithValue(errorData.message || 'Login failed');
-      }
+const mapToUser = (data: any): User => ({
+  id: data?.user?.id ?? '',
+  email: data?.user?.email ?? '',
+  username: data?.user?.username ?? '',
+  firstName: data?.user?.firstName ?? '',
+  lastName: data?.user?.lastName ?? '',
+  avatarUrl: data?.user?.avatarUrl ?? undefined,
+  token: data?.token ?? '',
+});
 
-      const data: User = await response.json();
-      // Save user to AsyncStorage
-      await AsyncStorage.setItem('streambox_user', JSON.stringify(data));
-      return data;
-    } catch (error: any) {
-      return rejectWithValue(error.message);
+const handleAuthRequest = async (path: string, body: Record<string, any>, rejectWithValue: (message: string) => any) => {
+  try {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      const message = data?.message ?? 'Request failed';
+      return rejectWithValue(message);
     }
+
+    const user = mapToUser(data);
+    await persistUser(user);
+    return user;
+  } catch (error: any) {
+    const message = error?.message ?? 'Unable to reach server';
+    return rejectWithValue(message);
   }
+};
+
+export const registerUser = createAsyncThunk<User, RegisterPayload, { rejectValue: string }>(
+  'auth/registerUser',
+  async (payload, { rejectWithValue }) => handleAuthRequest('/api/auth/register', payload, rejectWithValue)
+);
+
+export const loginUser = createAsyncThunk<User, LoginPayload, { rejectValue: string }>(
+  'auth/loginUser',
+  async (payload, { rejectWithValue }) => handleAuthRequest('/api/auth/login', payload, rejectWithValue)
 );
 
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    // Action to set user when loaded from storage
     setUser: (state, action: PayloadAction<User>) => {
       state.user = action.payload;
       state.status = 'succeeded';
@@ -67,8 +100,7 @@ const authSlice = createSlice({
       state.user = null;
       state.status = 'idle';
       state.error = null;
-      // Clear from AsyncStorage
-      AsyncStorage.removeItem('streambox_user');
+      AsyncStorage.removeItem(AUTH_STORAGE_KEY);
     },
   },
   extraReducers: (builder) => {
@@ -82,6 +114,18 @@ const authSlice = createSlice({
         state.user = action.payload;
       })
       .addCase(loginUser.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload;
+      })
+      .addCase(registerUser.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.user = action.payload;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload;
       });

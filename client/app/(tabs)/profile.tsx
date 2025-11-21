@@ -35,7 +35,14 @@ export default function ProfileScreen() {
         <View style={styles.content}>
           <Text style={styles.title}>Profile</Text>
           <GlassView style={styles.profileCard}>
-            <Image source={{ uri: user.image }} style={styles.profileImage} />
+            <Image
+              source={{
+                uri:
+                  user.avatarUrl ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(`${user.firstName} ${user.lastName}`)}&background=0f172a&color=ffffff`,
+              }}
+              style={styles.profileImage}
+            />
             <Text style={styles.name}>{user.firstName} {user.lastName}</Text>
             <Text style={styles.username}>@{user.username}</Text>
             <Text style={styles.email}>{user.email}</Text>
