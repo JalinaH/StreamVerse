@@ -35,10 +35,12 @@ export const fetchData = createAsyncThunk<
   'data/fetchData',
   async (_, { rejectWithValue }) => {
     try {
+      const apiKey = process.env.EXPO_PUBLIC_TMDB_API_KEY;
+      
       const [moviesRes, musicRes, podcastsRes] = await Promise.all([
-        fetch('https://dummyjson.com/products?limit=10&select=id,title,description,thumbnail,category'),
-        fetch('https://dummyjson.com/products?limit=10&skip=10&select=id,title,description,thumbnail,category'),
-        fetch('https://dummyjson.com/posts?limit=10&select=id,title,body,tags')
+        fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}`),
+        fetch('https://itunes.apple.com/search?term=top+hits&media=music&limit=10'),
+        fetch('https://itunes.apple.com/search?term=trending&media=podcast&limit=10')
       ]);
       
       if (!moviesRes.ok || !musicRes.ok || !podcastsRes.ok) {
@@ -49,31 +51,31 @@ export const fetchData = createAsyncThunk<
       const musicData = await musicRes.json();
       const podcastsData = await podcastsRes.json();
 
-      const movies: Item[] = moviesData.products.map((p: any) => ({
+      const movies: Item[] = moviesData.results.map((p: any) => ({
         id: `movie-${p.id}`,
         type: 'movie',
         title: p.title,
-        description: p.description,
-        image: p.thumbnail,
-        status: p.category,
+        description: p.overview,
+        image: `https://image.tmdb.org/t/p/w500${p.poster_path}`,
+        status: `Rating: ${p.vote_average.toFixed(1)}`,
       }));
 
-      const music: Item[] = musicData.products.map((p: any) => ({
-        id: `music-${p.id}`,
+      const music: Item[] = musicData.results.map((p: any) => ({
+        id: `music-${p.trackId}`,
         type: 'music',
-        title: p.title,
-        description: p.description,
-        image: p.thumbnail,
-        status: p.category,
+        title: p.trackName,
+        description: p.artistName,
+        image: p.artworkUrl100.replace('100x100', '600x600'),
+        status: p.primaryGenreName,
       }));
 
-      const podcasts: Item[] = podcastsData.posts.map((p: any) => ({
-        id: `podcast-${p.id}`,
+      const podcasts: Item[] = podcastsData.results.map((p: any) => ({
+        id: `podcast-${p.collectionId}`,
         type: 'podcast',
-        title: p.title,
-        description: p.body.substring(0, 100) + '...',
-        image: `https://placehold.co/300x300/6366f1/white?text=${p.title.split(' ')[0]}`,
-        status: p.tags[0] || 'Popular',
+        title: p.collectionName,
+        description: p.artistName,
+        image: p.artworkUrl600,
+        status: p.primaryGenreName,
       }));
       
       return { movies, music, podcasts };
