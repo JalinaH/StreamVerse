@@ -6,6 +6,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Provider, useDispatch, useSelector } from 'react-redux';
 import { ThemeProvider } from '../src/contexts/ThemeContext';
 import { AuthState, setUser } from '../src/features/auth/authSlice';
+import { fetchFavourites, resetFavourites } from '../src/features/favourites/favouritesSlice';
 import { RootState, store } from '../src/state/store';
 
 // This component loads the user from storage
@@ -36,6 +37,14 @@ function RootNavigation() {
 
     loadUser();
   }, [dispatch]);
+
+  useEffect(() => {
+    if (user?.token) {
+      dispatch(fetchFavourites());
+    } else {
+      dispatch(resetFavourites());
+    }
+  }, [dispatch, user?.token, user?.id]);
 
   // Show a loading spinner while we check for a saved user
   if (isLoading) {

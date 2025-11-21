@@ -5,6 +5,7 @@ import morgan from 'morgan';
 import { config } from './config';
 import { errorHandler, notFound } from './middleware/errorHandler';
 import authRoutes from './routes/authRoutes';
+import favouriteRoutes from './routes/favouriteRoutes';
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.get('/health', (_req, res) => {
 });
 
 app.use('/api/auth', authRoutes);
+app.use('/api/favourites', favouriteRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
