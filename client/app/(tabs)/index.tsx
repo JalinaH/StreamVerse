@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppHeader } from '../../src/components/AppHeader';
@@ -50,6 +50,10 @@ export default function HomeScreen() {
     }
   };
 
+  const handleViewAll = (path: string) => {
+    router.push(path as never);
+  };
+
   if (!user) {
     return null;
   }
@@ -72,7 +76,12 @@ export default function HomeScreen() {
           
           {/* Movies Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text.primary, textShadowColor: colors.primary }]}>Trending Movies</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text.primary, textShadowColor: colors.primary }]}>Trending Movies</Text>
+              <Pressable onPress={() => handleViewAll('/movie')}>
+                <Text style={[styles.viewAll, { color: colors.secondary }]}>See All</Text>
+              </Pressable>
+            </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
               {movies.map((item) => (
                 <ItemCard
@@ -88,7 +97,12 @@ export default function HomeScreen() {
 
           {/* Music Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text.primary, textShadowColor: colors.primary }]}>Popular Music</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text.primary, textShadowColor: colors.primary }]}>Popular Music</Text>
+              <Pressable onPress={() => handleViewAll('/music')}>
+                <Text style={[styles.viewAll, { color: colors.secondary }]}>See All</Text>
+              </Pressable>
+            </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
               {music.map((item) => (
                 <ItemCard
@@ -104,7 +118,12 @@ export default function HomeScreen() {
 
           {/* Podcasts Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text.primary, textShadowColor: colors.primary }]}>Top Podcasts</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={[styles.sectionTitle, { color: colors.text.primary, textShadowColor: colors.primary }]}>Top Podcasts</Text>
+              <Pressable onPress={() => handleViewAll('/podcast')}>
+                <Text style={[styles.viewAll, { color: colors.secondary }]}>See All</Text>
+              </Pressable>
+            </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
               {podcasts.map((item) => (
                 <ItemCard
@@ -141,10 +160,19 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginLeft: 16,
-    marginBottom: 12,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
+  },
+  sectionHeader: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  viewAll: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   horizontalScroll: {
     paddingLeft: 16,
