@@ -19,7 +19,6 @@ export default function LoginScreen() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [avatarUrl, setAvatarUrl] = useState('');
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { colors } = useTheme();
@@ -46,7 +45,7 @@ export default function LoginScreen() {
     }
 
     if (!firstName || !lastName || !email || !identifier || !password) {
-      setValidationError('All fields except avatar are required.');
+      setValidationError('All fields are required.');
       return false;
     }
 
@@ -71,7 +70,6 @@ export default function LoginScreen() {
         email,
         username: identifier,
         password,
-        avatarUrl: avatarUrl || undefined,
       })
     );
   };
@@ -166,19 +164,6 @@ export default function LoginScreen() {
             </Pressable>
           </View>
 
-          {mode === 'register' && (
-            <>
-              <Text style={[styles.label, { color: colors.text.secondary }]}>Avatar URL (optional)</Text>
-              <TextInput
-                style={[styles.input, { color: colors.text.primary, borderColor: colors.glass.border, backgroundColor: 'rgba(255,255,255,0.05)' }]}
-                value={avatarUrl}
-                onChangeText={setAvatarUrl}
-                autoCapitalize="none"
-                placeholder="https://..."
-                placeholderTextColor={colors.text.secondary}
-              />
-            </>
-          )}
           
           {(error || validationError) ? (
             <Text style={[styles.errorText, { color: colors.status.error }]}>{error || validationError}</Text>
