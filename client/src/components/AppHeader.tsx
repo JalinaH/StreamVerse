@@ -6,6 +6,7 @@ import { useSelector } from 'react-redux';
 import { useTheme } from '../contexts/ThemeContext';
 import { AuthState } from '../features/auth/authSlice';
 import { RootState } from '../state/store';
+import { BrandLogo } from './BrandLogo';
 
 export const AppHeader = () => {
   const user = useSelector((state: RootState) => (state.auth as AuthState).user);
@@ -16,11 +17,14 @@ export const AppHeader = () => {
   return (
     <BlurView intensity={20} tint={isDarkMode ? 'dark' : 'light'} style={styles.headerContainer}>
       <View style={styles.headerContent}>
-        <View>
-          <Text style={[styles.greeting, { color: colors.text.secondary }]}>Welcome back,</Text>
-          <Text style={[styles.title, { color: colors.text.primary, textShadowColor: colors.primary }]}>
-            {user ? `${user.firstName} ${user.lastName}` : 'StreamVerse'}
-          </Text>
+        <View style={styles.brandSection}>
+          <BrandLogo size={36} />
+          <View>
+            <Text style={[styles.greeting, { color: colors.text.secondary }]}>Welcome back,</Text>
+            <Text style={[styles.title, { color: colors.text.primary, textShadowColor: colors.primary }]}>
+              {user ? `${user.firstName} ${user.lastName}` : 'StreamVerse'}
+            </Text>
+          </View>
         </View>
         
         <View style={styles.rightContainer}>
@@ -55,6 +59,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  brandSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    columnGap: 12,
   },
   greeting: {
     fontSize: 14,
