@@ -8,12 +8,14 @@ export interface Item {
   description: string;
   image: string;
   status: string;
+  genres?: string[];
 }
 
 export interface DataState {
   movies: Item[];
   music: Item[];
   podcasts: Item[];
+  catalogue: Item[];
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null | undefined;
 }
@@ -22,13 +24,50 @@ const initialState: DataState = {
   movies: [],
   music: [],
   podcasts: [],
+  catalogue: [],
   status: 'idle',
   error: null,
 };
 
+const TMDB_GENRES: Record<number, string> = {
+  28: 'Action',
+  12: 'Adventure',
+  16: 'Animation',
+  35: 'Comedy',
+  80: 'Crime',
+  99: 'Documentary',
+  18: 'Drama',
+  10751: 'Family',
+  14: 'Fantasy',
+  36: 'History',
+  27: 'Horror',
+  10402: 'Music',
+  9648: 'Mystery',
+  10749: 'Romance',
+  878: 'Sci-Fi',
+  10770: 'TV Movie',
+  53: 'Thriller',
+  10752: 'War',
+  37: 'Western',
+};
+
+const LISTEN_NOTES_GENRES: Record<number, string> = {
+  67: 'True Crime',
+  122: 'Documentary',
+  68: 'Comedy',
+  82: 'TV & Film',
+  93: 'Society & Culture',
+};
+
+const mapTmdbGenres = (ids: number[] | undefined): string[] =>
+  (ids ?? []).map((id) => TMDB_GENRES[id]).filter(Boolean);
+
+const mapListenNotesGenres = (ids: number[] | undefined): string[] =>
+  (ids ?? []).map((id) => LISTEN_NOTES_GENRES[id]).filter(Boolean);
+
 // Async thunk is identical to the web version
 export const fetchData = createAsyncThunk<
-  { movies: Item[]; music: Item[]; podcasts: Item[] },
+  { movies: Item[]; music: Item[]; podcasts: Item[]; catalogue: Item[] },
   void,
   { rejectValue: string }
 >(
@@ -67,6 +106,7 @@ export const fetchData = createAsyncThunk<
         description: p.overview,
         image: `https://image.tmdb.org/t/p/w500${p.poster_path}`,
         status: `Rating: ${p.vote_average.toFixed(1)}`,
+        genres: mapTmdbGenres(p.genre_ids),
       }));
 
       const music: Item[] = musicData.results.map((p: any) => ({
@@ -76,6 +116,7 @@ export const fetchData = createAsyncThunk<
         description: p.artistName,
         image: p.artworkUrl100.replace('100x100', '600x600'),
         status: p.primaryGenreName,
+        genres: p.primaryGenreName ? [p.primaryGenreName] : [],
       }));
 
       const podcasts: Item[] = (podcastsData.podcasts || []).map((p: any) => ({
@@ -85,9 +126,11 @@ export const fetchData = createAsyncThunk<
         description: p.description || p.publisher,
         image: p.image || p.thumbnail,
         status: p.publisher ?? 'Podcast',
+        genres: mapListenNotesGenres(p.genre_ids),
       }));
       
-      return { movies, music, podcasts };
+      const catalogue = [...movies, ...music, ...podcasts];
+      return { movies, music, podcasts, catalogue };
 
     } catch (error: any) {
       return rejectWithValue(error.message ?? 'Failed to fetch data');
@@ -109,6 +152,7 @@ const dataSlice = createSlice({
         state.movies = action.payload.movies;
         state.music = action.payload.music;
         state.podcasts = action.payload.podcasts;
+        state.catalogue = action.payload.catalogue;
       })
       .addCase(fetchData.rejected, (state, action) => {
         state.status = 'failed';

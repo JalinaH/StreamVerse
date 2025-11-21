@@ -224,7 +224,9 @@ export default function ProfileScreen() {
           )}
 
           <GlassView style={styles.settingsCard}>
-            <Text style={styles.sectionTitle}>Settings</Text>
+            <View style={styles.settingsHeader}>
+              <Text style={styles.sectionTitle}>Settings</Text>
+            </View>
             {settings.map(({ key, ...rest }) => (
               <SettingsRow key={key} {...rest} disabled={isProfileLoading} />
             ))}
@@ -372,8 +374,12 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   settingsCard: {
-    padding: 0,
+    paddingTop: 20,
+    paddingBottom: 8,
     overflow: 'hidden',
+  },
+  settingsHeader: {
+    paddingHorizontal: 24,
   },
   settingsRow: {
     paddingHorizontal: 24,
