@@ -35,12 +35,21 @@ export const fetchData = createAsyncThunk<
   'data/fetchData',
   async (_, { rejectWithValue }) => {
     try {
-      const apiKey = process.env.EXPO_PUBLIC_TMDB_API_KEY;
+      const tmdbKey = process.env.EXPO_PUBLIC_TMDB_API_KEY;
+      const listenNotesKey = process.env.EXPO_PUBLIC_LISTEN_NOTES_API_KEY;
       
+      if (!listenNotesKey) {
+        return rejectWithValue('Missing Listen Notes API key.');
+      }
+
       const [moviesRes, musicRes, podcastsRes] = await Promise.all([
-        fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${apiKey}`),
+        fetch(`https://api.themoviedb.org/3/trending/movie/week?api_key=${tmdbKey}`),
         fetch('https://itunes.apple.com/search?term=top+hits&media=music&limit=10'),
-        fetch('https://itunes.apple.com/search?term=trending&media=podcast&limit=10')
+        fetch('https://listen-api.listennotes.com/api/v2/best_podcasts?region=us&safe_mode=1', {
+          headers: {
+            'X-ListenAPI-Key': listenNotesKey,
+          },
+        }),
       ]);
       
       if (!moviesRes.ok || !musicRes.ok || !podcastsRes.ok) {
@@ -69,13 +78,13 @@ export const fetchData = createAsyncThunk<
         status: p.primaryGenreName,
       }));
 
-      const podcasts: Item[] = podcastsData.results.map((p: any) => ({
-        id: `podcast-${p.collectionId}`,
+      const podcasts: Item[] = (podcastsData.podcasts || []).map((p: any) => ({
+        id: `podcast-${p.id}`,
         type: 'podcast',
-        title: p.collectionName,
-        description: p.artistName,
-        image: p.artworkUrl600,
-        status: p.primaryGenreName,
+        title: p.title,
+        description: p.description || p.publisher,
+        image: p.image || p.thumbnail,
+        status: p.publisher ?? 'Podcast',
       }));
       
       return { movies, music, podcasts };
