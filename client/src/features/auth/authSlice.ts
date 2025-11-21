@@ -1,7 +1,36 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Platform } from 'react-native';
 
-const API_BASE_URL = (process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:4000').replace(/\/$/, '');
+const resolveApiBaseUrl = () => {
+  if (process.env.EXPO_PUBLIC_API_URL) {
+    return process.env.EXPO_PUBLIC_API_URL;
+  }
+
+  const unifyHost = (uri?: string | null) => {
+    if (!uri) return undefined;
+    const withoutProtocol = uri.replace(/^(https?:\/\/|exp:\/\/|ws:\/\/)/, '');
+    const host = withoutProtocol.split(':')[0];
+    if (['localhost', '127.0.0.1'].includes(host)) {
+      if (Platform.OS === 'android') {
+        return '10.0.2.2';
+      }
+      return 'localhost';
+    }
+    return host;
+  };
+
+  const hostUri = Constants.expoConfig?.hostUri || Constants.experienceUrl;
+  const host = unifyHost(hostUri);
+  if (host) {
+    return `http://${host}:4000`;
+  }
+
+  return 'http://localhost:4000';
+};
+
+const API_BASE_URL = resolveApiBaseUrl().replace(/\/$/, '');
 const AUTH_STORAGE_KEY = 'streambox_user';
 
 export interface User {

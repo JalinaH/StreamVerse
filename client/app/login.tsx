@@ -81,9 +81,9 @@ export default function LoginScreen() {
 
   useEffect(() => {
     if (status === 'failed' && error) {
-      Alert.alert('Login Failed', error);
+      Alert.alert(mode === 'login' ? 'Login Failed' : 'Registration Failed', error);
     }
-  }, [status, error]);
+  }, [status, error, mode]);
 
   return (
     <GradientBackground>

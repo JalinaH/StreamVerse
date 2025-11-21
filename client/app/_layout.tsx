@@ -3,14 +3,15 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { Provider, useDispatch } from 'react-redux';
+import { Provider, useDispatch, useSelector } from 'react-redux';
 import { ThemeProvider } from '../src/contexts/ThemeContext';
-import { setUser } from '../src/features/auth/authSlice';
-import { store } from '../src/state/store';
+import { AuthState, setUser } from '../src/features/auth/authSlice';
+import { RootState, store } from '../src/state/store';
 
 // This component loads the user from storage
 function RootNavigation() {
   const dispatch = useDispatch();
+  const user = useSelector((state: RootState) => (state.auth as AuthState).user);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -19,7 +20,12 @@ function RootNavigation() {
       try {
         const storedUser = await AsyncStorage.getItem('streambox_user');
         if (storedUser) {
-          dispatch(setUser(JSON.parse(storedUser)));
+          const parsed = JSON.parse(storedUser);
+          if (parsed?.token && parsed?.id) {
+            dispatch(setUser(parsed));
+          } else {
+            await AsyncStorage.removeItem('streambox_user');
+          }
         }
       } catch (error) {
         console.error("Failed to load user from storage", error);
@@ -40,10 +46,13 @@ function RootNavigation() {
     );
   }
 
+  const initialRoute = user ? '(tabs)' : 'login';
+
   // This is your main app navigation
   return (
     <ThemeProvider>
       <Stack
+        initialRouteName={initialRoute}
         screenOptions={{
           contentStyle: { backgroundColor: 'transparent' },
           animation: 'fade',
