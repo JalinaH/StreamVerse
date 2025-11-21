@@ -47,9 +47,6 @@ export default function HomeScreen() {
       router.push({ pathname: '/music/[id]', params: { id } });
     } else if (id.startsWith('podcast-')) {
       router.push({ pathname: '/podcast/[id]', params: { id } });
-    } else {
-      // Fallback
-      router.push({ pathname: '/details/[id]', params: { id } });
     }
   };
 
