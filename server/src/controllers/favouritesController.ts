@@ -19,7 +19,11 @@ const requireUser = (req: Request, res: Response) => {
 };
 
 const serializeFavourites = (items: IFavouriteItem[] = []) =>
-  items.map(({ itemId, ...rest }) => ({ id: itemId, ...rest }));
+  items.map((fav) => {
+    const plain = typeof (fav as any).toObject === 'function' ? (fav as any).toObject() : fav;
+    const { itemId, ...rest } = plain;
+    return { id: itemId, ...rest };
+  });
 
 const mapFavourite = (payload: FavouritePayload): IFavouriteItem | null => {
   const { id, type, title, description, image, status } = payload;
