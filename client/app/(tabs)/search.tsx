@@ -8,6 +8,7 @@ import { AppHeader } from '../../src/components/AppHeader';
 import { GlassView } from '../../src/components/ui/GlassView';
 import { GradientBackground } from '../../src/components/ui/GradientBackground';
 import { ItemCard } from '../../src/components/ItemCard';
+import { NeonButton } from '../../src/components/ui/NeonButton';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { DataState, fetchData, Item } from '../../src/features/data/dataSlice';
 import { addFavourite, FavouritesState, removeFavourite } from '../../src/features/favourites/favouritesSlice';
@@ -16,10 +17,27 @@ import { colors } from '../../src/theme/colors';
 
 const fallbackGenres = ['Action', 'Comedy', 'Pop', 'True Crime', 'Sci-Fi', 'Hip-Hop', 'Documentary', 'Rock'];
 
+const moodGenreMap: Record<string, string[]> = {
+  Chill: ['Documentary', 'Drama', 'Acoustic', 'Indie', 'Jazz'],
+  Energize: ['Action', 'Hip-Hop', 'Pop', 'Rock', 'Thriller'],
+  Inspire: ['Sci-Fi', 'Fantasy', 'Biography', 'Motivation'],
+  Focus: ['Classical', 'Ambient', 'Education', 'True Crime'],
+};
+
+const moodCopy: Record<string, string> = {
+  Chill: 'Slow down with calm picks across film, music, and pods.',
+  Energize: 'High-tempo hits to boost your energy right now.',
+  Inspire: 'Stories and sounds to spark new ideas.',
+  Focus: 'Deep-focus ambience and engaging narratives.',
+};
+
 export default function SearchScreen() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
   const [isGenreModalVisible, setGenreModalVisible] = useState(false);
+  const [isDiscoveryVisible, setDiscoveryVisible] = useState(false);
+  const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [discoveryPicks, setDiscoveryPicks] = useState<Item[]>([]);
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { colors: themeColors } = useTheme();
@@ -43,6 +61,44 @@ export default function SearchScreen() {
     setSelectedGenre((prev) => (prev === genre ? null : genre));
     setGenreModalVisible(false);
   }, []);
+
+  const generateDiscoveryPicks = useCallback(
+    (mood: string) => {
+      if (!catalogue.length) return [];
+      const tags = moodGenreMap[mood] ?? [];
+      const loweredTags = new Set(tags.map((t) => t.toLowerCase()));
+      const pool = tags.length
+        ? catalogue.filter((item) => item.genres?.some((genre) => loweredTags.has(genre.toLowerCase())))
+        : catalogue;
+      if (!pool.length) return [];
+      const shuffled = [...pool].sort(() => Math.random() - 0.5);
+      const picks: Item[] = [];
+      const usedIds = new Set<string>();
+      shuffled.forEach((item) => {
+        if (!usedIds.has(item.id) && picks.length < 3) {
+          picks.push(item);
+          usedIds.add(item.id);
+        }
+      });
+      return picks;
+    },
+    [catalogue],
+  );
+
+  const handleMoodSelect = useCallback(
+    (mood: string) => {
+      setSelectedMood(mood);
+      const picks = generateDiscoveryPicks(mood);
+      setDiscoveryPicks(picks);
+    },
+    [generateDiscoveryPicks],
+  );
+
+  useEffect(() => {
+    if (isDiscoveryVisible && selectedMood && catalogue.length) {
+      setDiscoveryPicks(generateDiscoveryPicks(selectedMood));
+    }
+  }, [catalogue, generateDiscoveryPicks, isDiscoveryVisible, selectedMood]);
 
   const availableGenres = useMemo(() => {
     if (!catalogue.length) return fallbackGenres;
@@ -111,6 +167,17 @@ export default function SearchScreen() {
             </GlassView>
           </Pressable>
 
+          <NeonButton
+            title="Discovery Mode"
+            onPress={() => {
+              setDiscoveryVisible(true);
+              if (!selectedMood) {
+                handleMoodSelect('Chill');
+              }
+            }}
+            style={styles.discoveryButton}
+          />
+
           {status === 'loading' && catalogue.length === 0 ? (
             <View style={styles.loadingState}>
               <ActivityIndicator size="large" color={themeColors.primary} />
@@ -178,6 +245,67 @@ export default function SearchScreen() {
                 );
               })}
             </ScrollView>
+          </GlassView>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent
+        visible={isDiscoveryVisible}
+        onRequestClose={() => setDiscoveryVisible(false)}
+      >
+        <View style={styles.discoveryOverlay}>
+          <GlassView style={styles.discoverySheet}>
+            <View style={styles.discoveryHeader}>
+              <View>
+                <Text style={styles.modalTitle}>Discovery Mode</Text>
+                <Text style={styles.discoverySubtitle}>
+                  {selectedMood ? moodCopy[selectedMood] : 'Pick a mood to get a curated trio.'}
+                </Text>
+              </View>
+              <Pressable onPress={() => setDiscoveryVisible(false)} style={styles.modalClose}>
+                <Feather name="x" size={20} color={colors.text.secondary} />
+              </Pressable>
+            </View>
+
+            <View style={styles.moodRow}>
+              {Object.keys(moodGenreMap).map((mood) => {
+                const active = mood === selectedMood;
+                return (
+                  <Pressable
+                    key={mood}
+                    onPress={() => handleMoodSelect(mood)}
+                    style={({ pressed }) => [styles.moodChip, active && styles.moodChipActive, pressed && styles.genrePressed]}
+                  >
+                    <Text style={[styles.moodText, active && styles.moodTextActive]}>{mood}</Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {discoveryPicks.length ? (
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.discoveryList}>
+                {discoveryPicks.map((item) => (
+                  <View key={item.id} style={styles.discoveryCardWrapper}>
+                    <ItemCard
+                      item={item}
+                      onPress={() => handleCardPress(item)}
+                      isFavourite={favourites.some((fav) => fav.id === item.id)}
+                      onFavouriteToggle={() => handleFavouriteToggle(item)}
+                    />
+                  </View>
+                ))}
+              </ScrollView>
+            ) : (
+              <Text style={styles.emptyCopy}>No picks available for this mood yet.</Text>
+            )}
+
+            <NeonButton
+              title="Shuffle Picks"
+              onPress={() => selectedMood && setDiscoveryPicks(generateDiscoveryPicks(selectedMood))}
+              style={styles.shuffleButton}
+            />
           </GlassView>
         </View>
       </Modal>
@@ -324,6 +452,64 @@ const styles = StyleSheet.create({
   },
   modalClose: {
     padding: 4,
+  },
+  discoveryButton: {
+    marginTop: 16,
+  },
+  discoveryOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.7)',
+  },
+  discoverySheet: {
+    borderTopLeftRadius: 30,
+    borderTopRightRadius: 30,
+    padding: 24,
+    maxHeight: '85%',
+  },
+  discoveryHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  discoverySubtitle: {
+    color: colors.text.secondary,
+    marginTop: 4,
+  },
+  moodRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 16,
+    gap: 8,
+  },
+  moodChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  moodChipActive: {
+    borderColor: colors.primary,
+    backgroundColor: 'rgba(59,130,246,0.2)',
+  },
+  moodText: {
+    color: colors.text.primary,
+    fontWeight: '600',
+  },
+  moodTextActive: {
+    color: colors.primary,
+  },
+  discoveryList: {
+    marginTop: 24,
+    paddingBottom: 8,
+    gap: 16,
+  },
+  discoveryCardWrapper: {
+    width: 180,
+  },
+  shuffleButton: {
+    marginTop: 16,
   },
   emptyCopy: {
     marginTop: 24,
