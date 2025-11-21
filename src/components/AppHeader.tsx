@@ -1,54 +1,55 @@
+import { BlurView } from 'expo-blur';
 import React from 'react';
-import { View, Text, StyleSheet, Image } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { RootState } from '../state/store';
-import { useTheme } from '../contexts/ThemeContext'; // You would uncomment this
+import { colors } from '../theme/colors';
 
 export const AppHeader = () => {
   const { user } = useSelector((state: RootState) => state.auth);
-  // const { isDarkMode, toggleTheme } = useTheme(); // For dark mode
 
   return (
-    <View style={styles.header}>
-      <Text style={styles.headerTitle}>StreamVerse</Text>
-      <View style={styles.rightContainer}>
-        {/* <TouchableOpacity onPress={toggleTheme} style={styles.iconButton}>
-          <Feather name={isDarkMode ? 'sun' : 'moon'} size={22} color="#4b5563" />
-        </TouchableOpacity> */}
-        
-        {user && (
-          <View style={styles.profileContainer}>
-            <Text style={styles.profileName}>{user.firstName}</Text>
-            <Image source={{ uri: user.image }} style={styles.profileImage} />
-          </View>
-        )}
+    <View style={styles.container}>
+      <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>StreamVerse</Text>
+        <View style={styles.rightContainer}>
+          {user && (
+            <View style={styles.profileContainer}>
+              <Text style={styles.profileName}>{user.firstName}</Text>
+              <Image source={{ uri: user.image }} style={styles.profileImage} />
+            </View>
+          )}
+        </View>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  container: {
+    overflow: 'hidden',
+    borderBottomWidth: 1,
+    borderBottomColor: colors.glass.border,
+  },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#6366f1', // Indigo
+    color: colors.primary,
+    textShadowColor: colors.primary,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 8,
   },
   rightContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  iconButton: {
-    padding: 4,
   },
   profileContainer: {
     flexDirection: 'row',
@@ -58,12 +59,14 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#374151',
+    color: colors.text.primary,
     marginRight: 8,
   },
   profileImage: {
     width: 36,
     height: 36,
     borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.primary,
   },
 });

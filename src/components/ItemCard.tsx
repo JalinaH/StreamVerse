@@ -1,7 +1,9 @@
-import React from 'react';
-import { View, Text, Image, TouchableOpacity, StyleSheet, Pressable } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import React from 'react';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Item } from '../features/data/dataSlice';
+import { colors } from '../theme/colors';
+import { GlassView } from './ui/GlassView';
 
 interface ItemCardProps {
   item: Item;
@@ -12,23 +14,25 @@ interface ItemCardProps {
 
 export const ItemCard = ({ item, onPress, onFavouriteToggle, isFavourite }: ItemCardProps) => {
   return (
-    <View style={styles.card}>
-      <Pressable onPress={onPress}>
+    <GlassView style={styles.card}>
+      <Pressable onPress={onPress} style={styles.pressable}>
         <Image source={{ uri: item.image }} style={styles.image} />
+        <Pressable onPress={onFavouriteToggle} style={styles.favouriteButton}>
+          <GlassView style={styles.iconButton}>
+            <Feather 
+              name="heart" 
+              size={16} 
+              color={isFavourite ? colors.status.error : 'white'} 
+              fill={isFavourite ? colors.status.error : 'none'}
+            />
+          </GlassView>
+        </Pressable>
+        <View style={styles.infoBox}>
+          <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
+          <Text style={styles.status} numberOfLines={1}>{item.status}</Text>
+        </View>
       </Pressable>
-      <TouchableOpacity onPress={onFavouriteToggle} style={styles.favouriteButton}>
-        <Feather 
-          name="heart" 
-          size={20} 
-          color={isFavourite ? '#ef4444' : '#ffffff'} 
-          fill={isFavourite ? '#ef4444' : 'none'}
-        />
-      </TouchableOpacity>
-      <View style={styles.infoBox}>
-        <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
-        <Text style={styles.status} numberOfLines={1}>{item.status}</Text>
-      </View>
-    </View>
+    </GlassView>
   );
 };
 
@@ -36,40 +40,52 @@ const styles = StyleSheet.create({
   card: {
     width: 160,
     marginHorizontal: 8,
-    backgroundColor: 'white',
-    borderRadius: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  pressable: {
+    flex: 1,
   },
   image: {
     width: '100%',
-    height: 160,
-    borderTopLeftRadius: 8,
-    borderTopRightRadius: 8,
+    height: 200,
+    resizeMode: 'cover',
   },
   favouriteButton: {
     position: 'absolute',
     top: 8,
     right: 8,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 6,
-    borderRadius: 15,
+  },
+  iconButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    borderWidth: 0,
   },
   infoBox: {
-    padding: 10,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 12,
+    backgroundColor: 'rgba(0,0,0,0.6)',
   },
   title: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1f2937',
+    fontWeight: 'bold',
+    color: colors.text.primary,
+    textShadowColor: 'black',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
   status: {
-    fontSize: 12,
-    color: '#6b7280',
+    fontSize: 10,
+    color: colors.secondary,
     textTransform: 'uppercase',
     marginTop: 4,
+    fontWeight: 'bold',
   },
 });

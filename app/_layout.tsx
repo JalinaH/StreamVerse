@@ -40,12 +40,16 @@ function RootNavigation() {
 
   // This is your main app navigation
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="login" options={{ presentation: 'modal', headerShown: false }} />
-      {/* Add your details screen here, e.g.: */}
-      {/* <Stack.Screen name="details/[id]" options={{ title: "Details" }} /> */}
-    </Stack>
+    <>
+      <Stack screenOptions={{ 
+        headerShown: false,
+        contentStyle: { backgroundColor: 'transparent' },
+        animation: 'fade',
+      }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="login" options={{ presentation: 'modal' }} />
+      </Stack>
+    </>
   );
 }
 
@@ -63,5 +67,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#0f172a', // Match theme background
   },
 });
