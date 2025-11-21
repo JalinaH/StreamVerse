@@ -1,54 +1,61 @@
-import { Feather } from '@expo/vector-icons';
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppHeader } from '../../src/components/AppHeader';
+import { GlassView } from '../../src/components/ui/GlassView';
+import { GradientBackground } from '../../src/components/ui/GradientBackground';
+import { NeonButton } from '../../src/components/ui/NeonButton';
 import type { AuthState } from '../../src/features/auth/authSlice';
 import { logout } from '../../src/features/auth/authSlice';
 import { AppDispatch, RootState } from '../../src/state/store';
+import { colors } from '../../src/theme/colors';
 
 export default function ProfileScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => (state.auth as AuthState).user);
 
   if (!user) {
-    // This shouldn't happen if auth redirect is working, but just in case
     return (
-      <SafeAreaView style={styles.container}>
-        <AppHeader />
-        <View style={styles.content}>
-          <Text>Loading...</Text>
-        </View>
-      </SafeAreaView>
+      <GradientBackground>
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <AppHeader />
+          <View style={styles.content}>
+            <Text style={{ color: 'white' }}>Loading...</Text>
+          </View>
+        </SafeAreaView>
+      </GradientBackground>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <AppHeader />
-      <View style={styles.content}>
-        <Text style={styles.title}>Profile</Text>
-        <View style={styles.profileCard}>
-          <Image source={{ uri: user.image }} style={styles.profileImage} />
-          <Text style={styles.name}>{user.firstName} {user.lastName}</Text>
-          <Text style={styles.username}>@{user.username}</Text>
-          <Text style={styles.email}>{user.email}</Text>
+    <GradientBackground>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <AppHeader />
+        <View style={styles.content}>
+          <Text style={styles.title}>Profile</Text>
+          <GlassView style={styles.profileCard}>
+            <Image source={{ uri: user.image }} style={styles.profileImage} />
+            <Text style={styles.name}>{user.firstName} {user.lastName}</Text>
+            <Text style={styles.username}>@{user.username}</Text>
+            <Text style={styles.email}>{user.email}</Text>
+          </GlassView>
+          
+          <NeonButton
+            title="LOGOUT"
+            onPress={() => dispatch(logout())}
+            variant="secondary"
+            style={styles.logoutButton}
+          />
         </View>
-        
-        <Pressable style={styles.logoutButton} onPress={() => dispatch(logout())}>
-          <Feather name="log-out" size={20} color="white" />
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        </Pressable>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
   },
   content: {
     padding: 16,
@@ -56,53 +63,41 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 16,
+    color: colors.text.primary,
+    marginBottom: 24,
+    textShadowColor: colors.primary,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
   profileCard: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 24,
+    padding: 32,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginBottom: 32,
   },
   profileImage: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     marginBottom: 16,
+    borderWidth: 2,
+    borderColor: colors.primary,
   },
   name: {
-    fontSize: 22,
-    fontWeight: '600',
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.text.primary,
+    marginBottom: 4,
   },
   username: {
     fontSize: 16,
-    color: '#6b7280',
-    marginTop: 4,
+    color: colors.text.accent,
+    marginBottom: 8,
   },
   email: {
     fontSize: 16,
-    color: '#6b7280',
-    marginTop: 4,
+    color: colors.text.secondary,
   },
   logoutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ef4444',
-    padding: 16,
-    borderRadius: 6,
-    marginTop: 24,
-  },
-  logoutButtonText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
-    marginLeft: 8,
+    marginTop: 'auto',
   },
 });

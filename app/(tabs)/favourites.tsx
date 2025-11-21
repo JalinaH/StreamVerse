@@ -6,9 +6,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppHeader } from '../../src/components/AppHeader';
 import { ItemCard } from '../../src/components/ItemCard';
+import { GradientBackground } from '../../src/components/ui/GradientBackground';
 import { Item } from '../../src/features/data/dataSlice';
 import { FavouritesState, removeFavourite } from '../../src/features/favourites/favouritesSlice';
 import { AppDispatch, RootState } from '../../src/state/store';
+import { colors } from '../../src/theme/colors';
 
 export default function FavouritesScreen() {
   const dispatch = useDispatch<AppDispatch>();
@@ -30,60 +32,67 @@ export default function FavouritesScreen() {
 
   if (favourites.length === 0) {
     return (
-      <SafeAreaView style={styles.container}>
-        <AppHeader />
-        <View style={styles.emptyContainer}>
-          <Feather name="heart" size={64} color="#9ca3af" />
-          <Text style={styles.emptyText}>No Favourites Yet</Text>
-          <Text style={styles.emptySubText}>Tap the heart on any item to save it here.</Text>
-        </View>
-      </SafeAreaView>
+      <GradientBackground>
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <AppHeader />
+          <View style={styles.emptyContainer}>
+            <Feather name="heart" size={64} color={colors.text.secondary} />
+            <Text style={styles.emptyText}>No Favourites Yet</Text>
+            <Text style={styles.emptySubText}>Tap the heart on any item to save it here.</Text>
+          </View>
+        </SafeAreaView>
+      </GradientBackground>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <AppHeader />
-      <FlatList
-        data={favourites}
-        keyExtractor={(item) => item.id}
-        numColumns={2}
-        contentContainerStyle={styles.listContainer}
-        ListHeaderComponent={<Text style={styles.title}>My Favourites</Text>}
-        renderItem={({ item }) => (
-          <View style={styles.cardWrapper}>
-            <ItemCard
-              item={item}
-              onPress={() => handlePress(item)}
-              isFavourite={true} // It's always a favourite on this screen
-              onFavouriteToggle={() => handleFavouriteToggle(item)}
-            />
-          </View>
-        )}
-      />
-    </SafeAreaView>
+    <GradientBackground>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <AppHeader />
+        <FlatList
+          data={favourites}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          contentContainerStyle={styles.listContainer}
+          ListHeaderComponent={<Text style={styles.title}>My Favourites</Text>}
+          renderItem={({ item }) => (
+            <View style={styles.cardWrapper}>
+              <ItemCard
+                item={item}
+                onPress={() => handlePress(item)}
+                isFavourite={true} // It's always a favourite on this screen
+                onFavouriteToggle={() => handleFavouriteToggle(item)}
+              />
+            </View>
+          )}
+        />
+      </SafeAreaView>
+    </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f3f4f6',
   },
   listContainer: {
     padding: 8,
+    paddingBottom: 100,
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#1f2937',
+    color: colors.text.primary,
     marginBottom: 16,
     paddingHorizontal: 8,
+    textShadowColor: colors.primary,
+    textShadowOffset: { width: 0, height: 0 },
+    textShadowRadius: 10,
   },
   cardWrapper: {
     flex: 1 / 2,
     alignItems: 'center',
-    padding: 4,
+    padding: 8,
   },
   emptyContainer: {
     flex: 1,
@@ -91,14 +100,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: 22,
-    fontWeight: '600',
-    color: '#4b5563',
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: colors.text.primary,
     marginTop: 16,
   },
   emptySubText: {
     fontSize: 16,
-    color: '#6b7280',
+    color: colors.text.secondary,
     marginTop: 8,
   },
 });
