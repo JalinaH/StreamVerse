@@ -1,46 +1,175 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { Item } from '../data/dataSlice'; // Reuse the Item type
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import { Item } from '../data/dataSlice';
+import { buildApiUrl, withAuthHeaders } from '../../utils/api';
+import type { RootState } from '../../state/store';
+
+interface FavouriteResponseItem extends Item {
+  addedAt?: string;
+}
+
+interface FavouriteResponse {
+  items?: FavouriteResponseItem[];
+  message?: string;
+}
 
 export interface FavouritesState {
   items: Item[];
+  status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  error: string | null;
 }
 
 const initialState: FavouritesState = {
   items: [],
+  status: 'idle',
+  error: null,
 };
 
-// Helper function to save state to AsyncStorage
-const saveFavouritesToStorage = async (items: Item[]) => {
-  try {
-    await AsyncStorage.setItem('streambox_favourites', JSON.stringify(items));
-  } catch (error) {
-    console.error("Failed to save favourites to storage", error);
-  }
+type ThunkConfig = {
+  state: RootState;
+  rejectValue: string;
 };
+
+const normalizeResponse = (payload?: FavouriteResponse): Item[] => {
+  if (!payload?.items) {
+    return [];
+  }
+  return payload.items.map((item) => ({
+    id: item.id,
+    type: item.type,
+    title: item.title,
+    description: item.description,
+    image: item.image,
+    status: item.status,
+  }));
+};
+
+const getAuthToken = (state: RootState) => state.auth.user?.token;
+
+export const fetchFavourites = createAsyncThunk<Item[], void, ThunkConfig>(
+  'favourites/fetchFavourites',
+  async (_, { getState, rejectWithValue }) => {
+    const token = getAuthToken(getState());
+    if (!token) {
+      return rejectWithValue('Please sign in to manage favourites.');
+    }
+
+    try {
+      const response = await fetch(buildApiUrl('/api/favourites'), {
+        method: 'GET',
+        headers: withAuthHeaders(token),
+      });
+
+      const data: FavouriteResponse = await response.json().catch(() => ({ message: 'Invalid response' }));
+
+      if (!response.ok) {
+        return rejectWithValue(data?.message ?? 'Unable to load favourites.');
+      }
+
+      return normalizeResponse(data);
+    } catch (error: any) {
+      return rejectWithValue(error?.message ?? 'Unable to load favourites.');
+    }
+  }
+);
+
+export const addFavourite = createAsyncThunk<Item[], Item, ThunkConfig>(
+  'favourites/addFavourite',
+  async (item, { getState, rejectWithValue }) => {
+    const token = getAuthToken(getState());
+    if (!token) {
+      return rejectWithValue('Please sign in to manage favourites.');
+    }
+
+    try {
+      const response = await fetch(buildApiUrl('/api/favourites'), {
+        method: 'POST',
+        headers: withAuthHeaders(token),
+        body: JSON.stringify({
+          id: item.id,
+          type: item.type,
+          title: item.title,
+          description: item.description,
+          image: item.image,
+          status: item.status,
+        }),
+      });
+
+      const data: FavouriteResponse = await response.json().catch(() => ({ message: 'Invalid response' }));
+
+      if (!response.ok) {
+        return rejectWithValue(data?.message ?? 'Unable to save favourite.');
+      }
+
+      return normalizeResponse(data);
+    } catch (error: any) {
+      return rejectWithValue(error?.message ?? 'Unable to save favourite.');
+    }
+  }
+);
+
+export const removeFavourite = createAsyncThunk<Item[], { id: string }, ThunkConfig>(
+  'favourites/removeFavourite',
+  async ({ id }, { getState, rejectWithValue }) => {
+    const token = getAuthToken(getState());
+    if (!token) {
+      return rejectWithValue('Please sign in to manage favourites.');
+    }
+
+    try {
+      const response = await fetch(buildApiUrl(`/api/favourites/${encodeURIComponent(id)}`), {
+        method: 'DELETE',
+        headers: withAuthHeaders(token),
+      });
+
+      const data: FavouriteResponse = await response.json().catch(() => ({ message: 'Invalid response' }));
+
+      if (!response.ok) {
+        return rejectWithValue(data?.message ?? 'Unable to remove favourite.');
+      }
+
+      return normalizeResponse(data);
+    } catch (error: any) {
+      return rejectWithValue(error?.message ?? 'Unable to remove favourite.');
+    }
+  }
+);
 
 const favouritesSlice = createSlice({
   name: 'favourites',
   initialState,
   reducers: {
-    // Action to set favourites when loaded from storage
-    setFavourites: (state, action: PayloadAction<Item[]>) => {
-      state.items = action.payload;
-    },
-    addFavourite: (state, action: PayloadAction<Item>) => {
-      const newItem = action.payload;
-      if (!state.items.find(item => item.id === newItem.id)) {
-        state.items.push(newItem);
-        saveFavouritesToStorage(state.items); // Persist
-      }
-    },
-    removeFavourite: (state, action: PayloadAction<{ id: string }>) => {
-      const { id } = action.payload;
-      state.items = state.items.filter(item => !(item.id === id));
-      saveFavouritesToStorage(state.items); // Persist
-    },
+    resetFavourites: () => ({ ...initialState }),
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(fetchFavourites.pending, (state) => {
+        state.status = 'loading';
+        state.error = null;
+      })
+      .addCase(fetchFavourites.fulfilled, (state, action) => {
+        state.status = 'succeeded';
+        state.items = action.payload;
+      })
+      .addCase(fetchFavourites.rejected, (state, action) => {
+        state.status = 'failed';
+        state.error = action.payload ?? 'Failed to load favourites.';
+      })
+      .addCase(addFavourite.fulfilled, (state, action) => {
+        state.items = action.payload;
+        state.status = 'succeeded';
+      })
+      .addCase(addFavourite.rejected, (state, action) => {
+        state.error = action.payload ?? 'Unable to save favourite.';
+      })
+      .addCase(removeFavourite.fulfilled, (state, action) => {
+        state.items = action.payload;
+        state.status = 'succeeded';
+      })
+      .addCase(removeFavourite.rejected, (state, action) => {
+        state.error = action.payload ?? 'Unable to remove favourite.';
+      });
   },
 });
 
-export const { setFavourites, addFavourite, removeFavourite } = favouritesSlice.actions;
+export const { resetFavourites } = favouritesSlice.actions;
 export default favouritesSlice.reducer;
