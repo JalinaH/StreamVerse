@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppHeader } from '../../src/components/AppHeader';
@@ -19,6 +19,7 @@ const fallbackGenres = ['Action', 'Comedy', 'Pop', 'True Crime', 'Sci-Fi', 'Hip-
 export default function SearchScreen() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGenre, setSelectedGenre] = useState<string | null>(null);
+  const [isGenreModalVisible, setGenreModalVisible] = useState(false);
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { colors: themeColors } = useTheme();
@@ -40,6 +41,7 @@ export default function SearchScreen() {
 
   const handleGenrePress = useCallback((genre: string) => {
     setSelectedGenre((prev) => (prev === genre ? null : genre));
+    setGenreModalVisible(false);
   }, []);
 
   const availableGenres = useMemo(() => {
@@ -102,30 +104,19 @@ export default function SearchScreen() {
           </GlassView>
           <Text style={styles.note}>Search or pick a genre to filter across movies, music, and podcasts.</Text>
 
+          <Pressable onPress={() => setGenreModalVisible(true)} style={styles.filterControl}>
+            <GlassView style={styles.filterButton}>
+              <Feather name="sliders" size={18} color={colors.text.primary} style={styles.filterIcon} />
+              <Text style={styles.filterLabel}>{selectedGenre ? `Genre: ${selectedGenre}` : 'Filter by genre'}</Text>
+            </GlassView>
+          </Pressable>
+
           {status === 'loading' && catalogue.length === 0 ? (
             <View style={styles.loadingState}>
               <ActivityIndicator size="large" color={themeColors.primary} />
               <Text style={styles.note}>Fetching catalogue...</Text>
             </View>
           ) : null}
-
-          <Text style={styles.subTitle}>Browse by Genre</Text>
-          <View style={styles.genreContainer}>
-            {availableGenres.map((genre) => {
-              const isActive = selectedGenre === genre;
-              return (
-                <Pressable
-                  key={genre}
-                  onPress={() => handleGenrePress(genre)}
-                  style={({ pressed }) => [styles.genrePressable, pressed && styles.genrePressed]}
-                >
-                  <GlassView style={[styles.genreButton, isActive && styles.genreButtonActive]}>
-                    <Text style={[styles.genreText, isActive && styles.genreTextActive]}>{genre}</Text>
-                  </GlassView>
-                </Pressable>
-              );
-            })}
-          </View>
 
           {selectedGenre ? <Text style={styles.activeFilter}>Showing {selectedGenre} highlights</Text> : null}
 
@@ -155,6 +146,41 @@ export default function SearchScreen() {
           )}
         </ScrollView>
       </SafeAreaView>
+
+      <Modal
+        animationType="fade"
+        transparent
+        visible={isGenreModalVisible}
+        onRequestClose={() => setGenreModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <Pressable style={StyleSheet.absoluteFill} onPress={() => setGenreModalVisible(false)} />
+          <GlassView style={styles.modalCard}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Browse by Genre</Text>
+              <Pressable onPress={() => setGenreModalVisible(false)} style={styles.modalClose}>
+                <Feather name="x" size={20} color={colors.text.secondary} />
+              </Pressable>
+            </View>
+            <ScrollView contentContainerStyle={styles.genreContainer} showsVerticalScrollIndicator={false}>
+              {availableGenres.map((genre) => {
+                const isActive = selectedGenre === genre;
+                return (
+                  <Pressable
+                    key={genre}
+                    onPress={() => handleGenrePress(genre)}
+                    style={({ pressed }) => [styles.genrePressable, pressed && styles.genrePressed]}
+                  >
+                    <GlassView style={[styles.genreButton, isActive && styles.genreButtonActive]}>
+                      <Text style={[styles.genreText, isActive && styles.genreTextActive]}>{genre}</Text>
+                    </GlassView>
+                  </Pressable>
+                );
+              })}
+            </ScrollView>
+          </GlassView>
+        </View>
+      </Modal>
     </GradientBackground>
   );
 }
@@ -254,6 +280,50 @@ const styles = StyleSheet.create({
     width: '48%',
     marginBottom: 16,
     alignItems: 'center',
+  },
+  filterControl: {
+    marginTop: 16,
+  },
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 16,
+  },
+  filterIcon: {
+    marginRight: 8,
+  },
+  filterLabel: {
+    color: colors.text.primary,
+    fontWeight: '600',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    width: '100%',
+    maxHeight: '70%',
+    padding: 24,
+    borderRadius: 24,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.text.primary,
+  },
+  modalClose: {
+    padding: 4,
   },
   emptyCopy: {
     marginTop: 24,
