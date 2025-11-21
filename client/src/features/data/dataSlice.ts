@@ -14,6 +14,7 @@ export interface DataState {
   movies: Item[];
   music: Item[];
   podcasts: Item[];
+  catalogue: Item[];
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null | undefined;
 }
@@ -22,13 +23,14 @@ const initialState: DataState = {
   movies: [],
   music: [],
   podcasts: [],
+  catalogue: [],
   status: 'idle',
   error: null,
 };
 
 // Async thunk is identical to the web version
 export const fetchData = createAsyncThunk<
-  { movies: Item[]; music: Item[]; podcasts: Item[] },
+  { movies: Item[]; music: Item[]; podcasts: Item[]; catalogue: Item[] },
   void,
   { rejectValue: string }
 >(
@@ -87,7 +89,8 @@ export const fetchData = createAsyncThunk<
         status: p.publisher ?? 'Podcast',
       }));
       
-      return { movies, music, podcasts };
+      const catalogue = [...movies, ...music, ...podcasts];
+      return { movies, music, podcasts, catalogue };
 
     } catch (error: any) {
       return rejectWithValue(error.message ?? 'Failed to fetch data');
@@ -109,6 +112,7 @@ const dataSlice = createSlice({
         state.movies = action.payload.movies;
         state.music = action.payload.music;
         state.podcasts = action.payload.podcasts;
+        state.catalogue = action.payload.catalogue;
       })
       .addCase(fetchData.rejected, (state, action) => {
         state.status = 'failed';
