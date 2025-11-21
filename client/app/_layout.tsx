@@ -7,11 +7,11 @@ import { Provider, useDispatch, useSelector } from 'react-redux';
 import { ThemeProvider } from '../src/contexts/ThemeContext';
 import { AuthState, setUser } from '../src/features/auth/authSlice';
 import { fetchFavourites, resetFavourites } from '../src/features/favourites/favouritesSlice';
-import { RootState, store } from '../src/state/store';
+import { AppDispatch, RootState, store } from '../src/state/store';
 
 // This component loads the user from storage
 function RootNavigation() {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const user = useSelector((state: RootState) => (state.auth as AuthState).user);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -69,6 +69,9 @@ function RootNavigation() {
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ presentation: 'modal', headerShown: false }} />
+        <Stack.Screen name="movie/index" options={{ headerShown: false }} />
+        <Stack.Screen name="music/index" options={{ headerShown: false }} />
+        <Stack.Screen name="podcast/index" options={{ headerShown: false }} />
         <Stack.Screen name="movie/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="music/[id]" options={{ headerShown: false }} />
         <Stack.Screen name="podcast/[id]" options={{ headerShown: false }} />
