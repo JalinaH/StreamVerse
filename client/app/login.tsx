@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
+import { BrandLogo } from '../src/components/BrandLogo';
 import { GlassView } from '../src/components/ui/GlassView';
 import { GradientBackground } from '../src/components/ui/GradientBackground';
 import { NeonButton } from '../src/components/ui/NeonButton';
@@ -99,6 +100,9 @@ export default function LoginScreen() {
             showsVerticalScrollIndicator={false}
           >
             <GlassView style={styles.card}>
+              <View style={styles.logoContainer}>
+                <BrandLogo size={96} showTitle titleSize={24} />
+              </View>
           <Text style={[styles.title, { color: colors.text.primary, textShadowColor: colors.primary }]}>
             {mode === 'login' ? 'Welcome to StreamVerse' : 'Create your account'}
           </Text>
@@ -204,6 +208,10 @@ const styles = StyleSheet.create({
   card: {
     padding: 32,
     width: '100%',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 16,
   },
   title: {
     fontSize: 32,
