@@ -1,6 +1,7 @@
+import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { GlassView } from '../src/components/ui/GlassView';
@@ -14,6 +15,7 @@ export default function LoginScreen() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -87,8 +89,18 @@ export default function LoginScreen() {
 
   return (
     <GradientBackground>
-      <SafeAreaView style={styles.container}>
-        <GlassView style={styles.card}>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+      >
+        <SafeAreaView style={styles.container}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            <GlassView style={styles.card}>
           <Text style={[styles.title, { color: colors.text.primary, textShadowColor: colors.primary }]}>
             {mode === 'login' ? 'Welcome to StreamVerse' : 'Create your account'}
           </Text>
@@ -133,13 +145,26 @@ export default function LoginScreen() {
           />
 
           <Text style={[styles.label, { color: colors.text.secondary }]}>Password</Text>
-          <TextInput
-            style={[styles.input, { color: colors.text.primary, borderColor: colors.glass.border, backgroundColor: 'rgba(255,255,255,0.05)' }]}
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            placeholderTextColor={colors.text.secondary}
-          />
+          <View style={[styles.passwordRow, { borderColor: colors.glass.border }]}
+          >
+            <TextInput
+              style={[styles.passwordInput, { color: colors.text.primary }]}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!isPasswordVisible}
+              placeholderTextColor={colors.text.secondary}
+            />
+            <Pressable
+              onPress={() => setIsPasswordVisible((prev) => !prev)}
+              hitSlop={12}
+            >
+              <Feather
+                name={isPasswordVisible ? 'eye-off' : 'eye'}
+                size={20}
+                color={colors.text.secondary}
+              />
+            </Pressable>
+          </View>
 
           {mode === 'register' && (
             <>
@@ -171,17 +196,25 @@ export default function LoginScreen() {
           >
             {mode === 'login' ? 'Need an account? Register here.' : 'Already have an account? Log in.'}
           </Text>
-        </GlassView>
-      </SafeAreaView>
+            </GlassView>
+          </ScrollView>
+        </SafeAreaView>
+      </KeyboardAvoidingView>
     </GradientBackground>
   );
 }
 
 const styles = StyleSheet.create({
+  flex: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    justifyContent: 'center',
     padding: 20,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   card: {
     padding: 32,
@@ -208,6 +241,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 20,
     fontSize: 16,
+  },
+  passwordRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    marginBottom: 20,
+    backgroundColor: 'rgba(255,255,255,0.05)',
+  },
+  passwordInput: {
+    flex: 1,
+    height: 50,
+    fontSize: 16,
+    paddingVertical: 0,
+    marginRight: 12,
   },
   errorText: {
     marginBottom: 16,
