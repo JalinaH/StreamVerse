@@ -51,7 +51,9 @@ function RootNavigation() {
       >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ presentation: 'modal', headerShown: false }} />
-        <Stack.Screen name="details/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="movie/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="music/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="podcast/[id]" options={{ headerShown: false }} />
       </Stack>
       <StatusBar style="light" />
     </ThemeProvider>
