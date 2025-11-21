@@ -1,8 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Stack } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { Provider, useDispatch } from 'react-redux';
+import { ThemeProvider } from '../src/contexts/ThemeContext';
 import { setUser } from '../src/features/auth/authSlice';
 import { store } from '../src/state/store';
 
@@ -40,21 +42,24 @@ function RootNavigation() {
 
   // This is your main app navigation
   return (
-    <>
-      <Stack screenOptions={{ 
-        headerShown: false,
-        contentStyle: { backgroundColor: 'transparent' },
-        animation: 'fade',
-      }}>
-        <Stack.Screen name="(tabs)" />
-        <Stack.Screen name="login" options={{ presentation: 'modal' }} />
+    <ThemeProvider>
+      <Stack
+        screenOptions={{
+          contentStyle: { backgroundColor: 'transparent' },
+          animation: 'fade',
+        }}
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ presentation: 'modal', headerShown: false }} />
+        <Stack.Screen name="details/[id]" options={{ headerShown: false }} />
       </Stack>
-    </>
+      <StatusBar style="light" />
+    </ThemeProvider>
   );
 }
 
 // This is your main App component
-export default function AppLayout() {
+export default function RootLayout() {
   return (
     <Provider store={store}>
       <RootNavigation />

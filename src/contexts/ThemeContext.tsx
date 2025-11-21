@@ -8,43 +8,20 @@ import React, {
     useState,
 } from 'react';
 import { Appearance, ColorSchemeName } from 'react-native';
+import { darkTheme, lightTheme, ThemeColors } from '../theme/colors';
 
 export type ThemeMode = 'light' | 'dark';
-
-interface ThemePalette {
-	background: string;
-	card: string;
-	text: string;
-	border: string;
-	muted: string;
-}
 
 interface ThemeContextValue {
 	theme: ThemeMode;
 	isDarkMode: boolean;
-	colors: ThemePalette;
+	colors: ThemeColors;
 	isHydrated: boolean;
 	setTheme: (mode: ThemeMode) => void;
 	toggleTheme: () => void;
 }
 
 const STORAGE_KEY = 'streamverse_theme_preference';
-
-const lightPalette: ThemePalette = {
-	background: '#f3f4f6',
-	card: '#ffffff',
-	text: '#111827',
-	border: '#e5e7eb',
-	muted: '#6b7280',
-};
-
-const darkPalette: ThemePalette = {
-	background: '#0f172a',
-	card: '#1f2937',
-	text: '#f9fafb',
-	border: '#334155',
-	muted: '#94a3b8',
-};
 
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
@@ -118,7 +95,7 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 		() => ({
 			theme,
 			isDarkMode: theme === 'dark',
-			colors: theme === 'dark' ? darkPalette : lightPalette,
+			colors: theme === 'dark' ? darkTheme : lightTheme,
 			isHydrated,
 			setTheme,
 			toggleTheme,
@@ -129,10 +106,13 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 	return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
 
-export const useThemeContext = () => {
+export const useTheme = () => {
 	const context = useContext(ThemeContext);
 	if (!context) {
-		throw new Error('useThemeContext must be used within a ThemeProvider');
+		throw new Error('useTheme must be used within a ThemeProvider');
 	}
 	return context;
 };
+
+// Alias for backward compatibility if needed, but prefer useTheme
+export const useThemeContext = useTheme;

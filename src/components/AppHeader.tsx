@@ -1,72 +1,84 @@
+import { Feather } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import { useTheme } from '../contexts/ThemeContext';
+import { AuthState } from '../features/auth/authSlice';
 import { RootState } from '../state/store';
-import { colors } from '../theme/colors';
 
 export const AppHeader = () => {
-  const { user } = useSelector((state: RootState) => state.auth);
+  const user = useSelector((state: RootState) => (state.auth as AuthState).user);
+  const { colors, isDarkMode, toggleTheme } = useTheme();
 
   return (
-    <View style={styles.container}>
-      <BlurView intensity={20} tint="dark" style={StyleSheet.absoluteFill} />
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>StreamVerse</Text>
+    <BlurView intensity={20} tint={isDarkMode ? 'dark' : 'light'} style={styles.headerContainer}>
+      <View style={styles.headerContent}>
+        <View>
+          <Text style={[styles.greeting, { color: colors.text.secondary }]}>Welcome back,</Text>
+          <Text style={[styles.title, { color: colors.text.primary, textShadowColor: colors.primary }]}>StreamVerse</Text>
+        </View>
+        
         <View style={styles.rightContainer}>
+          <Pressable onPress={toggleTheme} style={styles.themeButton}>
+            <Feather name={isDarkMode ? 'sun' : 'moon'} size={24} color={colors.text.primary} />
+          </Pressable>
+          
           {user && (
-            <View style={styles.profileContainer}>
-              <Text style={styles.profileName}>{user.firstName}</Text>
-              <Image source={{ uri: user.image }} style={styles.profileImage} />
+            <View style={[styles.profileContainer, { borderColor: colors.primary }]}>
+              <Image 
+                source={{ uri: user.image }} 
+                style={styles.profileImage} 
+              />
             </View>
           )}
         </View>
       </View>
-    </View>
+    </BlurView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  headerContainer: {
+    paddingTop: 10,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
     overflow: 'hidden',
     borderBottomWidth: 1,
-    borderBottomColor: colors.glass.border,
+    borderBottomColor: 'rgba(255,255,255,0.1)',
   },
-  header: {
+  headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
   },
-  headerTitle: {
+  greeting: {
+    fontSize: 14,
+    marginBottom: 2,
+  },
+  title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: colors.primary,
-    textShadowColor: colors.primary,
     textShadowOffset: { width: 0, height: 0 },
-    textShadowRadius: 8,
+    textShadowRadius: 10,
   },
   rightContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 16,
+  },
+  themeButton: {
+    padding: 8,
   },
   profileContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 12,
-  },
-  profileName: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: colors.text.primary,
-    marginRight: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: 2,
+    overflow: 'hidden',
   },
   profileImage: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.primary,
+    width: '100%',
+    height: '100%',
   },
 });

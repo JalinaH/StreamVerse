@@ -1,21 +1,21 @@
 import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, StyleSheet, Text, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { GlassView } from '../src/components/ui/GlassView';
 import { GradientBackground } from '../src/components/ui/GradientBackground';
 import { NeonButton } from '../src/components/ui/NeonButton';
-import type { AuthState } from '../src/features/auth/authSlice';
-import { loginUser } from '../src/features/auth/authSlice';
+import { useTheme } from '../src/contexts/ThemeContext';
+import { AuthState, loginUser } from '../src/features/auth/authSlice';
 import { AppDispatch, RootState } from '../src/state/store';
-import { colors } from '../src/theme/colors';
 
 export default function LoginScreen() {
-  const [username, setUsername] = useState('kminchelle'); // Default for easy testing
-  const [password, setPassword] = useState('0lelplR'); // Default for easy testing
+  const [username, setUsername] = useState('kminchelle');
+  const [password, setPassword] = useState('0lelplR');
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+  const { colors } = useTheme();
   
   const { status, error, user } = useSelector(
     (state: RootState) => state.auth as AuthState,
@@ -23,7 +23,6 @@ export default function LoginScreen() {
   const [validationError, setValidationError] = useState('');
 
   useEffect(() => {
-    // Replace the login route with the tab stack once authenticated
     if (user) {
       router.replace({ pathname: '/(tabs)' } as never);
     }
@@ -45,7 +44,6 @@ export default function LoginScreen() {
   };
 
   useEffect(() => {
-    // Show API error in an Alert
     if (status === 'failed' && error) {
       Alert.alert('Login Failed', error);
     }
@@ -55,40 +53,35 @@ export default function LoginScreen() {
     <GradientBackground>
       <SafeAreaView style={styles.container}>
         <GlassView style={styles.card}>
-          <Text style={styles.title}>StreamVerse</Text>
-          <Text style={styles.subtitle}>Enter the Metaverse</Text>
+          <Text style={[styles.title, { color: colors.text.primary, textShadowColor: colors.primary }]}>
+            Welcome to StreamVerse
+          </Text>
           
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Username</Text>
-            <TextInput
-              style={styles.input}
-              value={username}
-              onChangeText={setUsername}
-              autoCapitalize="none"
-              placeholder="Enter username"
-              placeholderTextColor={colors.text.secondary}
-            />
-          </View>
+          <Text style={[styles.label, { color: colors.text.secondary }]}>Username</Text>
+          <TextInput
+            style={[styles.input, { color: colors.text.primary, borderColor: colors.glass.border, backgroundColor: 'rgba(255,255,255,0.05)' }]}
+            value={username}
+            onChangeText={setUsername}
+            autoCapitalize="none"
+            placeholderTextColor={colors.text.secondary}
+          />
           
-          <View style={styles.inputContainer}>
-            <Text style={styles.label}>Password</Text>
-            <TextInput
-              style={styles.input}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              placeholder="Enter password"
-              placeholderTextColor={colors.text.secondary}
-            />
-          </View>
+          <Text style={[styles.label, { color: colors.text.secondary }]}>Password</Text>
+          <TextInput
+            style={[styles.input, { color: colors.text.primary, borderColor: colors.glass.border, backgroundColor: 'rgba(255,255,255,0.05)' }]}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            placeholderTextColor={colors.text.secondary}
+          />
           
           {(error || validationError) ? (
-            <Text style={styles.errorText}>{error || validationError}</Text>
+            <Text style={[styles.errorText, { color: colors.status.error }]}>{error || validationError}</Text>
           ) : null}
-
-          <NeonButton
-            title="LOGIN"
-            onPress={handleSubmit}
+          
+          <NeonButton 
+            title="LOGIN" 
+            onPress={handleSubmit} 
             loading={status === 'loading'}
             style={styles.button}
           />
@@ -109,45 +102,31 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   title: {
-    fontSize: 36,
+    fontSize: 32,
     fontWeight: 'bold',
+    marginBottom: 32,
     textAlign: 'center',
-    color: colors.text.primary,
-    marginBottom: 8,
-    textShadowColor: colors.primary,
     textShadowOffset: { width: 0, height: 0 },
     textShadowRadius: 10,
   },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    color: colors.text.accent,
-    marginBottom: 40,
-    letterSpacing: 1,
-  },
-  inputContainer: {
-    marginBottom: 20,
-  },
   label: {
     fontSize: 14,
-    fontWeight: '600',
-    color: colors.text.secondary,
     marginBottom: 8,
-    marginLeft: 4,
+    fontWeight: '600',
+    letterSpacing: 0.5,
   },
   input: {
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    borderColor: colors.glass.border,
+    height: 50,
     borderWidth: 1,
     borderRadius: 12,
-    padding: 16,
+    paddingHorizontal: 16,
+    marginBottom: 20,
     fontSize: 16,
-    color: colors.text.primary,
   },
   errorText: {
-    color: colors.status.error,
-    marginBottom: 20,
+    marginBottom: 16,
     textAlign: 'center',
+    fontSize: 14,
   },
   button: {
     marginTop: 10,

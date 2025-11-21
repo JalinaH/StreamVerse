@@ -1,17 +1,19 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface GradientBackgroundProps {
   children: React.ReactNode;
   style?: ViewStyle;
 }
 
-export function GradientBackground({ children, style }: GradientBackgroundProps) {
+export const GradientBackground = ({ children, style }: GradientBackgroundProps) => {
+  const { colors } = useTheme();
+
   return (
     <LinearGradient
-      colors={[colors.background, '#1e1b4b']} // Dark slate to deep indigo
+      colors={colors.backgroundGradient}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={[styles.container, style]}
@@ -19,7 +21,7 @@ export function GradientBackground({ children, style }: GradientBackgroundProps)
       {children}
     </LinearGradient>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {

@@ -1,29 +1,28 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
-import { colors } from '../../theme/colors';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface NeonButtonProps {
-  onPress: () => void;
   title: string;
-  loading?: boolean;
-  disabled?: boolean;
-  style?: ViewStyle;
+  onPress: () => void;
   variant?: 'primary' | 'secondary';
+  loading?: boolean;
+  style?: ViewStyle;
+  disabled?: boolean;
 }
 
-export function NeonButton({ 
-  onPress, 
+export const NeonButton = ({ 
   title, 
+  onPress, 
+  variant = 'primary', 
   loading = false, 
-  disabled = false, 
   style,
-  variant = 'primary'
-}: NeonButtonProps) {
-  
-  const gradientColors = variant === 'primary' 
-    ? colors.primaryGradient 
-    : colors.secondaryGradient;
+  disabled = false
+}: NeonButtonProps) => {
+  const { colors } = useTheme();
+  const gradientColors = variant === 'primary' ? colors.primaryGradient : colors.secondaryGradient;
+  const shadowColor = variant === 'primary' ? colors.primary : colors.secondary;
 
   return (
     <Pressable
@@ -31,8 +30,11 @@ export function NeonButton({
       disabled={disabled || loading}
       style={({ pressed }) => [
         styles.container,
-        pressed && styles.pressed,
-        disabled && styles.disabled,
+        {
+          shadowColor: shadowColor,
+          opacity: (disabled || loading) ? 0.7 : (pressed ? 0.9 : 1),
+          transform: [{ scale: pressed ? 0.98 : 1 }],
+        },
         style
       ]}
     >
@@ -50,35 +52,28 @@ export function NeonButton({
       </LinearGradient>
     </Pressable>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
     borderRadius: 12,
-    overflow: 'hidden',
-    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.5,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowOpacity: 0.8,
+    shadowRadius: 15,
+    elevation: 8,
   },
   gradient: {
     paddingVertical: 16,
-    paddingHorizontal: 24,
+    paddingHorizontal: 32,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  pressed: {
-    opacity: 0.9,
-    transform: [{ scale: 0.98 }],
-  },
-  disabled: {
-    opacity: 0.6,
   },
   text: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
-    letterSpacing: 0.5,
+    letterSpacing: 1,
+    textTransform: 'uppercase',
   },
 });
