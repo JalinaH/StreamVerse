@@ -1,8 +1,8 @@
 import { Feather } from '@expo/vector-icons';
 import React from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useTheme } from '../contexts/ThemeContext';
 import { Item } from '../features/data/dataSlice';
-import { colors } from '../theme/colors';
 import { GlassView } from './ui/GlassView';
 
 interface ItemCardProps {
@@ -13,6 +13,8 @@ interface ItemCardProps {
 }
 
 export const ItemCard = ({ item, onPress, onFavouriteToggle, isFavourite }: ItemCardProps) => {
+  const { colors } = useTheme();
+
   return (
     <GlassView style={styles.card}>
       <Pressable onPress={onPress} style={styles.pressable}>
@@ -22,14 +24,14 @@ export const ItemCard = ({ item, onPress, onFavouriteToggle, isFavourite }: Item
             <Feather 
               name="heart" 
               size={16} 
-              color={isFavourite ? colors.status.error : 'white'} 
-              fill={isFavourite ? colors.status.error : 'none'}
+              color={isFavourite ? colors.status.error : colors.text.primary} 
+              style={isFavourite ? styles.favActive : undefined}
             />
           </GlassView>
         </Pressable>
         <View style={styles.infoBox}>
-          <Text style={styles.title} numberOfLines={1}>{item.title}</Text>
-          <Text style={styles.status} numberOfLines={1}>{item.status}</Text>
+          <Text style={[styles.title, { color: colors.text.primary }]} numberOfLines={1}>{item.title}</Text>
+          <Text style={[styles.status, { color: colors.secondary }]} numberOfLines={1}>{item.status}</Text>
         </View>
       </Pressable>
     </GlassView>
@@ -65,6 +67,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.3)',
     borderWidth: 0,
   },
+  favActive: {
+    shadowColor: '#ef4444',
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 4,
+  },
   infoBox: {
     position: 'absolute',
     bottom: 0,
@@ -76,14 +84,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: colors.text.primary,
     textShadowColor: 'black',
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   status: {
     fontSize: 10,
-    color: colors.secondary,
     textTransform: 'uppercase',
     marginTop: 4,
     fontWeight: 'bold',

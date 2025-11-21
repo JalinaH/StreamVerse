@@ -1,28 +1,61 @@
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { AppHeader } from '../../src/components/AppHeader';
-import { GlassView } from '../../src/components/ui/GlassView';
+import { ItemCard } from '../../src/components/ItemCard';
 import { GradientBackground } from '../../src/components/ui/GradientBackground';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { AuthState } from '../../src/features/auth/authSlice';
-import { RootState } from '../../src/state/store';
+import { DataState, fetchData, Item } from '../../src/features/data/dataSlice';
+import { addFavourite, FavouritesState, removeFavourite } from '../../src/features/favourites/favouritesSlice';
+import { AppDispatch, RootState } from '../../src/state/store';
 
 export default function HomeScreen() {
   const user = useSelector((state: RootState) => (state.auth as AuthState).user);
+  const { movies, music, podcasts, status } = useSelector((state: RootState) => state.data as DataState);
+  const favourites = useSelector((state: RootState) => (state.favourites as FavouritesState).items);
+  const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { colors } = useTheme();
 
   useEffect(() => {
     if (!user) {
       router.replace({ pathname: '/login' } as never);
+    } else {
+      if (status === 'idle') {
+        dispatch(fetchData());
+      }
     }
-  }, [user, router]);
+  }, [user, router, status, dispatch]);
+
+  const isFavourite = (id: string) => favourites.some((item) => item.id === id);
+
+  const handleFavouriteToggle = (item: Item) => {
+    if (isFavourite(item.id)) {
+      dispatch(removeFavourite({ id: item.id }));
+    } else {
+      dispatch(addFavourite(item));
+    }
+  };
+
+  const handleItemPress = (id: string) => {
+    router.push({ pathname: '/details/[id]', params: { id } });
+  };
 
   if (!user) {
     return null;
+  }
+
+  if (status === 'loading') {
+    return (
+      <GradientBackground>
+        <SafeAreaView style={[styles.container, styles.center]}>
+          <ActivityIndicator size="large" color={colors.primary} />
+        </SafeAreaView>
+      </GradientBackground>
+    );
   }
 
   return (
@@ -30,37 +63,55 @@ export default function HomeScreen() {
       <SafeAreaView style={styles.container} edges={['top']}>
         <AppHeader />
         <ScrollView contentContainerStyle={styles.content}>
+          
+          {/* Movies Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text.primary, textShadowColor: colors.primary }]}>Trending Now</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text.primary, textShadowColor: colors.primary }]}>Trending Movies</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-              {[1, 2, 3].map((item) => (
-                <GlassView key={item} style={styles.placeholderCard}>
-                  <View style={[styles.placeholderImage, { backgroundColor: 'rgba(255,255,255,0.1)' }]} />
-                  <Text style={[styles.placeholderText, { color: colors.text.primary }]}>Item {item}</Text>
-                  <Text style={[styles.placeholderSubtext, { color: colors.text.secondary }]}>Description</Text>
-                </GlassView>
+              {movies.map((item) => (
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  onPress={() => handleItemPress(item.id)}
+                  onFavouriteToggle={() => handleFavouriteToggle(item)}
+                  isFavourite={isFavourite(item.id)}
+                />
               ))}
             </ScrollView>
           </View>
 
+          {/* Music Section */}
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: colors.text.primary, textShadowColor: colors.primary }]}>Recommended for You</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text.primary, textShadowColor: colors.primary }]}>Popular Music</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-              {[4, 5, 6].map((item) => (
-                <GlassView key={item} style={styles.placeholderCard}>
-                  <View style={[styles.placeholderImage, { backgroundColor: 'rgba(255,255,255,0.1)' }]} />
-                  <Text style={[styles.placeholderText, { color: colors.text.primary }]}>Item {item}</Text>
-                  <Text style={[styles.placeholderSubtext, { color: colors.text.secondary }]}>Description</Text>
-                </GlassView>
+              {music.map((item) => (
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  onPress={() => handleItemPress(item.id)}
+                  onFavouriteToggle={() => handleFavouriteToggle(item)}
+                  isFavourite={isFavourite(item.id)}
+                />
               ))}
             </ScrollView>
           </View>
 
-          <Link href={{ pathname: '/details/[id]', params: { id: '1' } }} asChild>
-            <Pressable style={[styles.testButton, { borderColor: colors.primary }]}>
-              <Text style={[styles.testButtonText, { color: colors.primary }]}>Test Details Page</Text>
-            </Pressable>
-          </Link>
+          {/* Podcasts Section */}
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: colors.text.primary, textShadowColor: colors.primary }]}>Top Podcasts</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
+              {podcasts.map((item) => (
+                <ItemCard
+                  key={item.id}
+                  item={item}
+                  onPress={() => handleItemPress(item.id)}
+                  onFavouriteToggle={() => handleFavouriteToggle(item)}
+                  isFavourite={isFavourite(item.id)}
+                />
+              ))}
+            </ScrollView>
+          </View>
+
         </ScrollView>
       </SafeAreaView>
     </GradientBackground>
@@ -70,6 +121,10 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  center: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   content: {
     paddingBottom: 100,
@@ -87,35 +142,5 @@ const styles = StyleSheet.create({
   },
   horizontalScroll: {
     paddingLeft: 16,
-  },
-  placeholderCard: {
-    width: 160,
-    height: 200,
-    marginRight: 16,
-    alignItems: 'center',
-    borderWidth: 1,
-  },
-  placeholderImage: {
-    width: '100%',
-    height: 120,
-    borderRadius: 8,
-    marginBottom: 8,
-  },
-  placeholderText: {
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  placeholderSubtext: {
-    fontSize: 12,
-  },
-  testButton: {
-    margin: 20,
-    padding: 16,
-    borderWidth: 1,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  testButtonText: {
-    fontWeight: 'bold',
   },
 });
