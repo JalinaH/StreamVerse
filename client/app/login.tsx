@@ -1,6 +1,6 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
@@ -11,6 +11,7 @@ import { NeonButton } from '../src/components/ui/NeonButton';
 import { useTheme } from '../src/contexts/ThemeContext';
 import { AuthState, loginUser, registerUser } from '../src/features/auth/authSlice';
 import { AppDispatch, RootState } from '../src/state/store';
+import { FormErrors, validateLoginForm, validateRegisterForm } from '../src/utils/validation';
 
 export default function LoginScreen() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
@@ -27,7 +28,8 @@ export default function LoginScreen() {
   const { status, error, user } = useSelector(
     (state: RootState) => state.auth as AuthState,
   );
-  const [validationError, setValidationError] = useState('');
+  const [touchedFields, setTouchedFields] = useState<Record<string, boolean>>({});
+  const [hasSubmitted, setHasSubmitted] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -35,27 +37,45 @@ export default function LoginScreen() {
     }
   }, [router, user]);
 
-  const validate = () => {
+  const activeFields = mode === 'login'
+    ? ['identifier', 'password']
+    : ['firstName', 'lastName', 'email', 'identifier', 'password'];
+
+  const formErrors = useMemo<FormErrors>(() => {
     if (mode === 'login') {
-      if (!identifier || !password) {
-        setValidationError('Username/Email and password are required.');
-        return false;
-      }
-      setValidationError('');
-      return true;
+      return validateLoginForm({ identifier, password });
     }
+    return validateRegisterForm({ firstName, lastName, email, identifier, password });
+  }, [mode, identifier, password, firstName, lastName, email]);
 
-    if (!firstName || !lastName || !email || !identifier || !password) {
-      setValidationError('All fields are required.');
-      return false;
-    }
+  const isFormValid = useMemo(() => Object.keys(formErrors).length === 0, [formErrors]);
 
-    setValidationError('');
-    return true;
-  };
-  
+  const markFieldsTouched = useCallback((fields: string[]) => {
+    setTouchedFields((prev) => {
+      const next = { ...prev };
+      fields.forEach((field) => {
+        next[field] = true;
+      });
+      return next;
+    });
+  }, []);
+
+  const handleInputBlur = useCallback((field: string) => () => {
+    setTouchedFields((prev) => ({ ...prev, [field]: true }));
+  }, []);
+
+  const shouldShowError = useCallback(
+    (field: string) => (hasSubmitted || touchedFields[field]) && Boolean(formErrors[field]),
+    [formErrors, hasSubmitted, touchedFields],
+  );
+
+  const getErrorMessage = (field: string) => (shouldShowError(field) ? formErrors[field] : '');
+
   const handleSubmit = () => {
-    if (!validate()) {
+    setHasSubmitted(true);
+    markFieldsTouched(activeFields);
+
+    if (!isFormValid) {
       return;
     }
 
@@ -77,7 +97,8 @@ export default function LoginScreen() {
 
   const toggleMode = () => {
     setMode((prev) => (prev === 'login' ? 'register' : 'login'));
-    setValidationError('');
+    setTouchedFields({});
+    setHasSubmitted(false);
   };
 
   useEffect(() => {
@@ -114,16 +135,30 @@ export default function LoginScreen() {
                 style={[styles.input, { color: colors.text.primary, borderColor: colors.glass.border, backgroundColor: 'rgba(255,255,255,0.05)' }]}
                 value={firstName}
                 onChangeText={setFirstName}
+                placeholder="First name"
                 placeholderTextColor={colors.text.secondary}
+                onBlur={handleInputBlur('firstName')}
+                returnKeyType="next"
+                autoComplete="given-name"
               />
+              {getErrorMessage('firstName') ? (
+                <Text style={[styles.fieldError, { color: colors.status.error }]}>{getErrorMessage('firstName')}</Text>
+              ) : null}
 
               <Text style={[styles.label, { color: colors.text.secondary }]}>Last Name</Text>
               <TextInput
                 style={[styles.input, { color: colors.text.primary, borderColor: colors.glass.border, backgroundColor: 'rgba(255,255,255,0.05)' }]}
                 value={lastName}
                 onChangeText={setLastName}
+                placeholder="Last name"
                 placeholderTextColor={colors.text.secondary}
+                onBlur={handleInputBlur('lastName')}
+                returnKeyType="next"
+                autoComplete="family-name"
               />
+              {getErrorMessage('lastName') ? (
+                <Text style={[styles.fieldError, { color: colors.status.error }]}>{getErrorMessage('lastName')}</Text>
+              ) : null}
 
               <Text style={[styles.label, { color: colors.text.secondary }]}>Email</Text>
               <TextInput
@@ -132,8 +167,15 @@ export default function LoginScreen() {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                placeholder="Email address"
                 placeholderTextColor={colors.text.secondary}
+                onBlur={handleInputBlur('email')}
+                returnKeyType="next"
+                autoComplete="email"
               />
+              {getErrorMessage('email') ? (
+                <Text style={[styles.fieldError, { color: colors.status.error }]}>{getErrorMessage('email')}</Text>
+              ) : null}
             </>
           )}
 
@@ -143,10 +185,20 @@ export default function LoginScreen() {
             value={identifier}
             onChangeText={setIdentifier}
             autoCapitalize="none"
+            placeholder={mode === 'login' ? 'Username or email' : 'Preferred username'}
             placeholderTextColor={colors.text.secondary}
+            onBlur={handleInputBlur('identifier')}
+            returnKeyType="next"
+            autoComplete={mode === 'login' ? 'username' : 'username-new'}
           />
+          {getErrorMessage('identifier') ? (
+            <Text style={[styles.fieldError, { color: colors.status.error }]}>{getErrorMessage('identifier')}</Text>
+          ) : null}
 
           <Text style={[styles.label, { color: colors.text.secondary }]}>Password</Text>
+          {mode === 'register' ? (
+            <Text style={[styles.passwordHint, { color: colors.text.secondary }]}>Use at least 8 characters with letters and numbers.</Text>
+          ) : null}
           <View style={[styles.passwordRow, { borderColor: colors.glass.border }]}
           >
             <TextInput
@@ -154,7 +206,12 @@ export default function LoginScreen() {
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!isPasswordVisible}
+              placeholder="Password"
               placeholderTextColor={colors.text.secondary}
+              onBlur={handleInputBlur('password')}
+              autoCapitalize="none"
+              autoComplete={mode === 'login' ? 'password' : 'password-new'}
+              returnKeyType="done"
             />
             <Pressable
               onPress={() => setIsPasswordVisible((prev) => !prev)}
@@ -167,10 +224,13 @@ export default function LoginScreen() {
               />
             </Pressable>
           </View>
+          {getErrorMessage('password') ? (
+            <Text style={[styles.fieldError, { color: colors.status.error }]}>{getErrorMessage('password')}</Text>
+          ) : null}
 
           
-          {(error || validationError) ? (
-            <Text style={[styles.errorText, { color: colors.status.error }]}>{error || validationError}</Text>
+          {error ? (
+            <Text style={[styles.errorText, { color: colors.status.error }]}>{error}</Text>
           ) : null}
           
           <NeonButton 
@@ -178,6 +238,7 @@ export default function LoginScreen() {
             onPress={handleSubmit} 
             loading={status === 'loading'}
             style={styles.button}
+            disabled={!isFormValid}
           />
 
           <Text style={[styles.switchText, { color: colors.text.secondary }]}
@@ -255,6 +316,16 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: 'center',
     fontSize: 14,
+  },
+  fieldError: {
+    marginTop: -12,
+    marginBottom: 16,
+    fontSize: 12,
+  },
+  passwordHint: {
+    fontSize: 12,
+    marginBottom: 8,
+    opacity: 0.8,
   },
   button: {
     marginTop: 10,

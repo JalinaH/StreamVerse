@@ -1,4 +1,5 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import type { RootState } from '../../state/store';
 
 // Define a universal Item type
 export interface Item {
@@ -18,6 +19,7 @@ export interface DataState {
   catalogue: Item[];
   status: 'idle' | 'loading' | 'succeeded' | 'failed';
   error: string | null | undefined;
+  lastFetched: number | null;
 }
 
 const initialState: DataState = {
@@ -27,6 +29,7 @@ const initialState: DataState = {
   catalogue: [],
   status: 'idle',
   error: null,
+  lastFetched: null,
 };
 
 const TMDB_GENRES: Record<number, string> = {
@@ -65,11 +68,17 @@ const mapTmdbGenres = (ids: number[] | undefined): string[] =>
 const mapListenNotesGenres = (ids: number[] | undefined): string[] =>
   (ids ?? []).map((id) => LISTEN_NOTES_GENRES[id]).filter(Boolean);
 
+type FetchDataArgs = {
+  force?: boolean;
+};
+
+const CACHE_WINDOW_MS = 1000 * 60 * 5; // 5 minutes
+
 // Async thunk is identical to the web version
 export const fetchData = createAsyncThunk<
   { movies: Item[]; music: Item[]; podcasts: Item[]; catalogue: Item[] },
-  void,
-  { rejectValue: string }
+  FetchDataArgs | undefined,
+  { rejectValue: string; state: RootState }
 >(
   'data/fetchData',
   async (_, { rejectWithValue }) => {
@@ -135,6 +144,21 @@ export const fetchData = createAsyncThunk<
     } catch (error: any) {
       return rejectWithValue(error.message ?? 'Failed to fetch data');
     }
+  },
+  {
+    condition: (args = {}, { getState }) => {
+      const { lastFetched, status } = (getState() as RootState).data;
+      if (status === 'loading') {
+        return false;
+      }
+      if (args.force) {
+        return true;
+      }
+      if (!lastFetched) {
+        return true;
+      }
+      return Date.now() - lastFetched >= CACHE_WINDOW_MS;
+    },
   }
 );
 
@@ -146,6 +170,7 @@ const dataSlice = createSlice({
     builder
       .addCase(fetchData.pending, (state) => {
         state.status = 'loading';
+        state.error = null;
       })
       .addCase(fetchData.fulfilled, (state, action) => {
         state.status = 'succeeded';
@@ -153,6 +178,8 @@ const dataSlice = createSlice({
         state.music = action.payload.music;
         state.podcasts = action.payload.podcasts;
         state.catalogue = action.payload.catalogue;
+        state.lastFetched = Date.now();
+        state.error = null;
       })
       .addCase(fetchData.rejected, (state, action) => {
         state.status = 'failed';
