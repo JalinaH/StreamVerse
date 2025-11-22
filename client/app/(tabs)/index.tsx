@@ -1,10 +1,11 @@
 import { useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useMemo } from 'react';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppHeader } from '../../src/components/AppHeader';
 import { ItemCard } from '../../src/components/ItemCard';
+import { NeonButton } from '../../src/components/ui/NeonButton';
 import { GradientBackground } from '../../src/components/ui/GradientBackground';
 import { useTheme } from '../../src/contexts/ThemeContext';
 import { AuthState } from '../../src/features/auth/authSlice';
@@ -14,7 +15,7 @@ import { AppDispatch, RootState } from '../../src/state/store';
 
 export default function HomeScreen() {
   const user = useSelector((state: RootState) => (state.auth as AuthState).user);
-  const { movies, music, podcasts, status } = useSelector((state: RootState) => state.data as DataState);
+  const { movies, music, podcasts, status, error } = useSelector((state: RootState) => state.data as DataState);
   const favourites = useSelector((state: RootState) => (state.favourites as FavouritesState).items);
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
@@ -54,11 +55,14 @@ export default function HomeScreen() {
     router.push(path as never);
   };
 
+  const hasContent = useMemo(() => (movies.length + music.length + podcasts.length) > 0, [movies.length, music.length, podcasts.length]);
+  const isRefreshing = status === 'loading' && hasContent;
+
   if (!user) {
     return null;
   }
 
-  if (status === 'loading') {
+  if (status === 'loading' && !hasContent) {
     return (
       <GradientBackground>
         <SafeAreaView style={[styles.container, styles.center]}>
@@ -68,11 +72,44 @@ export default function HomeScreen() {
     );
   }
 
+  if (status === 'failed' && !hasContent) {
+    return (
+      <GradientBackground>
+        <SafeAreaView style={[styles.container, styles.center]}>
+          <Text style={[styles.errorTitle, { color: colors.text.primary }]}>Something went wrong</Text>
+          <Text style={[styles.errorSubtitle, { color: colors.text.secondary }]}>
+            {error ?? 'Unable to fetch the latest catalogue.'}
+          </Text>
+          <NeonButton title="Retry" onPress={() => dispatch(fetchData({ force: true }))} style={styles.retryButton} />
+        </SafeAreaView>
+      </GradientBackground>
+    );
+  }
+
+  const refreshControl = (
+    <RefreshControl
+      refreshing={isRefreshing}
+      onRefresh={() => dispatch(fetchData({ force: true }))}
+      tintColor={colors.primary}
+      colors={[colors.primary]}
+    />
+  );
+
   return (
     <GradientBackground>
       <SafeAreaView style={styles.container} edges={['top']}>
         <AppHeader />
-        <ScrollView contentContainerStyle={styles.content}>
+        {status === 'failed' && hasContent ? (
+          <View style={styles.inlineError}>
+            <Text style={[styles.inlineErrorText, { color: colors.text.secondary }]} numberOfLines={2}>
+              {error ?? 'Refreshing catalogue failed.'}
+            </Text>
+            <Pressable onPress={() => dispatch(fetchData({ force: true }))}>
+              <Text style={[styles.inlineErrorLink, { color: colors.primary }]}>Try again</Text>
+            </Pressable>
+          </View>
+        ) : null}
+        <ScrollView contentContainerStyle={styles.content} refreshControl={refreshControl}>
           
           {/* Movies Section */}
           <View style={styles.section}>
@@ -154,8 +191,38 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: 100,
   },
+  errorTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  errorSubtitle: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 24,
+    maxWidth: 260,
+  },
+  retryButton: {
+    width: 200,
+  },
   section: {
     marginTop: 24,
+  },
+  inlineError: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    padding: 12,
+    borderRadius: 12,
+    backgroundColor: 'rgba(239,68,68,0.15)',
+  },
+  inlineErrorText: {
+    fontSize: 13,
+    marginBottom: 4,
+  },
+  inlineErrorLink: {
+    fontSize: 13,
+    fontWeight: '600',
   },
   sectionTitle: {
     fontSize: 20,

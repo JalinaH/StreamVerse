@@ -1,7 +1,7 @@
 import { Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppHeader } from '../../src/components/AppHeader';
@@ -41,7 +41,7 @@ export default function SearchScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const { colors: themeColors } = useTheme();
-  const { catalogue, status } = useSelector((state: RootState) => state.data as DataState);
+  const { catalogue, status, error } = useSelector((state: RootState) => state.data as DataState);
   const favourites = useSelector((state: RootState) => (state.favourites as FavouritesState).items);
 
   useEffect(() => {
@@ -49,6 +49,12 @@ export default function SearchScreen() {
       dispatch(fetchData());
     }
   }, [dispatch, status]);
+
+  const isRefreshing = status === 'loading' && Boolean(catalogue.length);
+
+  const handleRefresh = useCallback(() => {
+    dispatch(fetchData({ force: true }));
+  }, [dispatch]);
 
   const handleSearchChange = useCallback(
     (value: string) => {
@@ -146,7 +152,18 @@ export default function SearchScreen() {
     <GradientBackground>
       <SafeAreaView style={styles.container} edges={['top']}>
         <AppHeader />
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor={themeColors.primary}
+              colors={[themeColors.primary]}
+            />
+          }
+        >
           <Text style={styles.title}>Search</Text>
           <GlassView style={styles.searchBox}>
             <Feather name="search" size={20} color={colors.text.secondary} style={styles.searchIcon} />
@@ -177,6 +194,18 @@ export default function SearchScreen() {
             }}
             style={styles.discoveryButton}
           />
+
+          {status === 'failed' ? (
+            <GlassView style={styles.errorBanner}>
+              <Text style={styles.errorBannerText}>{error ?? 'Unable to load the catalogue right now.'}</Text>
+              <NeonButton
+                title="Retry"
+                variant="secondary"
+                onPress={handleRefresh}
+                style={styles.errorBannerButton}
+              />
+            </GlassView>
+          ) : null}
 
           {status === 'loading' && catalogue.length === 0 ? (
             <View style={styles.loadingState}>
@@ -353,6 +382,19 @@ const styles = StyleSheet.create({
   loadingState: {
     alignItems: 'center',
     marginTop: 32,
+  },
+  errorBanner: {
+    flexDirection: 'column',
+    gap: 12,
+    padding: 16,
+    marginTop: 16,
+  },
+  errorBannerText: {
+    color: colors.text.primary,
+    fontSize: 14,
+  },
+  errorBannerButton: {
+    alignSelf: 'flex-start',
   },
   subTitle: {
     fontSize: 22,

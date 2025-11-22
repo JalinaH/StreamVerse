@@ -1,5 +1,5 @@
 import { Feather } from '@expo/vector-icons';
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '../contexts/ThemeContext';
 import { Item } from '../features/data/dataSlice';
@@ -14,12 +14,37 @@ interface ItemCardProps {
 
 export const ItemCard = ({ item, onPress, onFavouriteToggle, isFavourite }: ItemCardProps) => {
   const { colors } = useTheme();
+  const [hasImageError, setHasImageError] = useState(!item.image);
+  const showFallback = hasImageError || !item.image;
 
   return (
     <GlassView style={styles.card}>
-      <Pressable onPress={onPress} style={styles.pressable}>
-        <Image source={{ uri: item.image }} style={styles.image} />
-        <Pressable onPress={onFavouriteToggle} style={styles.favouriteButton}>
+      <Pressable
+        onPress={onPress}
+        style={styles.pressable}
+        accessibilityRole="button"
+        accessibilityLabel={`${item.title} details`}
+      >
+        {showFallback ? (
+          <View style={[styles.fallback, { backgroundColor: colors.glass.background }]}
+          >
+            <Feather name="image" size={24} color={colors.text.secondary} />
+            <Text style={[styles.fallbackText, { color: colors.text.secondary }]}>Artwork unavailable</Text>
+          </View>
+        ) : (
+          <Image
+            source={{ uri: item.image }}
+            style={styles.image}
+            onError={() => setHasImageError(true)}
+            accessibilityIgnoresInvertColors
+          />
+        )}
+        <Pressable
+          onPress={onFavouriteToggle}
+          style={styles.favouriteButton}
+          accessibilityRole="button"
+          accessibilityLabel={isFavourite ? `Remove ${item.title} from favourites` : `Save ${item.title} to favourites`}
+        >
           <GlassView style={styles.iconButton}>
             <Feather 
               name="heart" 
@@ -52,6 +77,18 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 200,
     resizeMode: 'cover',
+  },
+  fallback: {
+    width: '100%',
+    height: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  fallbackText: {
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   favouriteButton: {
     position: 'absolute',
